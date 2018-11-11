@@ -1,138 +1,100 @@
 package modele;
 
-import java.util.List;
-import CentreSportif.Connexion;
 import CentreSportif.IFT287Exception;
 
 public class GestionLigue {
 
-  	private Ligues ligues;
-  	@SuppressWarnings("unused")
-	private Equipes equipe;
+  	private Ligues ligue;
+  	private Equipes equipe;
   	private Participants participant;
-    private Connexion cx;
 
     /**
      * Creation d'une instance
      */
-    public GestionLigue(Ligues ligues, Equipes equipe, Participants participant) throws IFT287Exception
+    public GestionLigue(Ligues ligue, Equipes equipe, Participants participant) throws IFT287Exception
     {
-        this.cx = ligues.getConnexion();
-        if (participant.getConnexion() != ligues.getConnexion() || equipe.getConnexion() != ligues.getConnexion())
-        	throw new IFT287Exception("Les différents gestionnaires (equipes, partcipants, ligues) n'utilisent pas la même connexion au serveur");
-        this.ligues = ligues;
+        if (participant.getConnexion() != ligue.getConnexion() || equipe.getConnexion() != ligue.getConnexion())
+            throw new IFT287Exception("Les instances de ligue, particpant et equipe n'utilisent pas la même connexion au serveur");
+        this.ligue = ligue;
         this.equipe = equipe;
         this.participant = participant;
     }
 
     /**
-     * Ajout d'une nouvelle ligue. S'il existe déjà , une exception est levée.
-     * @param nomLigue
-     * @param nbJoueurMaxParEquipe
-     * @throws IFT287Exception
-     * @throws Exception
-     */
-    public void ajouterLigue(String nomLigue, int nbJoueurMaxParEquipe) throws IFT287Exception, Exception
+     * Ajout d'une nouvelle ligue vide dans la base de données. S'il existe déjà , une
+     * exception est levée.
+     * 
+     * @throws IFT287Exception, Exception
+     */		
+    public void ajouterLigueEmpty(String nomLigue, int nbJoueurMaxParEquipe) throws IFT287Exception, Exception
     {
-    	try
+        try
         {
-    		cx.demarreTransaction();
-        	
             // Vérifie si la ligue existe déjà
-            if (ligues.existe(nomLigue))
-                throw new IFT287Exception("La ligue "+nomLigue+" existe déjà.");
+            if (ligue.existe(nomLigue))
+                throw new IFT287Exception("Ligue "+nomLigue+" existe déjà ");
+
+            // Ajout d'une ligue vide dans la table des ligues
+            ligue.creer(nomLigue, nbJoueurMaxParEquipe);
             
-            Ligue tupleLigue = new Ligue(nomLigue, nbJoueurMaxParEquipe);
-            
-            // Ajout de la ligue dans la table des ligues
-            ligues.ajouter(tupleLigue);
-            
-            cx.commit();
         }
         catch (Exception e)
         {
-            cx.rollback();
             throw e;
         }
     }
     
+    
     /**
-     * Modifier le nombre de joueur max par equipe pour une ligue dans la base de données.
-     * @param nomLigue
-     * @param nbJoueurMaxParEquipe
-     * @throws IFT287Exception
-     * @throws Exception
-     */
+     * Modifier le nombre de joueur max par equipe pour une ligue dans la base de données. 
+     * 
+     *  @throws IFT287Exception, Exception
+     */		
     public void modifierNombreJoueurMax(String nomLigue, int nbJoueurMaxParEquipe) throws IFT287Exception, Exception
     {
         try
         {
-        	cx.demarreTransaction();
-        	
             // Vérifie si la ligue existe déjà
-            if (!ligues.existe(nomLigue))
+            if (ligue.existe(nomLigue))
                 throw new IFT287Exception("Ligue "+nomLigue+" existe déjà : ");
             
-            Ligue tupleLigue = ligues.getLigue(nomLigue);
-            
-            // Modifier ligue
-        	tupleLigue.setNbJoueurMaxParEquipe(nbJoueurMaxParEquipe);
-            
-            cx.commit();
+            // Ajout de la ligue dans la table des ligues
+            ligue.modifierNbJoueursMaxParEquipe(nomLigue, nbJoueurMaxParEquipe);;
         }
         catch (Exception e)
         {
-            cx.rollback();
             throw e;
         }
     }
         
+    
     /**
-     * Supprime Ligue
-     * @param nomLigue
-     * @throws IFT287Exception
-     * @throws Exception
+     * Supprime Ligue de la base de données.
+     * 
+     *  @throws SQLException, IFT287Exception, Exception
      */
-    public void supprimer(String nomLigue) throws IFT287Exception, Exception
+    public void supprime(String nomLigue) throws IFT287Exception, Exception
     {
         try
         {
-        	cx.demarreTransaction();
-            // Validations
-            Ligue tupleLigue = ligues.getLigue(nomLigue);
+            // Validation
+            Ligue tupleLigue = ligue.getLigue(nomLigue);
             if (tupleLigue == null)
                 throw new IFT287Exception("Ligue inexistant: " + nomLigue);
             if (participant.nombreMembresLigue(nomLigue) > 0)
-                throw new IFT287Exception("Ligue " + nomLigue + " a encore des participants actifs");
+                throw new IFT287Exception("Ligue " + nomLigue + "a encore des participants actifs");
             
-            // suppression de la ligue
-            boolean testLigue = ligues.supprimer(tupleLigue);
-            if (testLigue == false)
+            // Suppression des equipes de la ligue.
+            @SuppressWarnings("unused")
+			//int nbEquipe = equipe.supprimerEquipesLigue(nomLigue);
+            // Suppression de la ligue.
+            boolean nbLique = ligue.supprimer(nomLigue);
+            if (nbLique == false)
                 throw new IFT287Exception("Ligue " + nomLigue + " inexistante");
-
-            cx.commit();
         }
         catch (Exception e)
         {
-            cx.rollback();
             throw e;
         }
-    }
-    
-    /**
-     * Affiche toutes les ligues de la BD
-     */
-    public void afficherLigues()
-    {
-        cx.demarreTransaction();
-        
-        List<Ligue> l = ligues.calculerListeLigues();
-                
-        for(Ligue li : l)
-        {
-            System.out.println(li.toString());
-        }
-        
-        cx.commit();
     }
 }

@@ -1,117 +1,157 @@
 package modele;
 
-import java.util.List;
-import javax.persistence.TypedQuery;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Updates.inc;
+import static com.mongodb.client.model.Updates.set;
+import org.bson.Document;
+import com.mongodb.client.MongoCollection;
 import CentreSportif.Connexion;
 
 public class Equipes {
 
-	private TypedQuery<Equipe> stmtExiste;
-	private TypedQuery<Equipe> stmtExisteCapitaine;
-	private TypedQuery<Equipe> stmtListToutesEquipes;
-	private TypedQuery<Equipe> stmtListToutesEquipesLigue;
 	private Connexion cx;
+	private MongoCollection<Document> equipesCollection;
 
 	/**
 	 * Creation d'une instance.
 	 */
 	public Equipes(Connexion cx) {
 		this.cx = cx;
-		stmtExiste = cx.getConnection()
-				.createQuery("select e from Equipe e where e.nomEquipe = :nomEquipe",Equipe.class);
-		stmtExisteCapitaine = cx.getConnection()
-				.createQuery("select e from Equipe e where e.capitaine.matricule = :matriculeCap",Equipe.class);
-		stmtListToutesEquipes = cx.getConnection().createQuery("select e from Equipe e",Equipe.class);
-		stmtListToutesEquipesLigue = cx.getConnection().createQuery("select e from Equipe e where e.ligue.nomLigue = :nomLigue",Equipe.class);
+		equipesCollection = cx.getDatabase().getCollection("Equipes");
 	}
 
 	/**
-	 * Retourner la connexion associée.
+	 * Retourner la connexion associÃ©e.
 	 */
 	public Connexion getConnexion() {
 		return cx;
 	}
-	
-	/**
-	 * Ajout d'une nouvelle equipe non vide.
-	 * @param equipe
-	 * @return l'équipe créée
-	 */
-	public Equipe creer(Equipe equipe) {
-        cx.getConnection().persist(equipe);
-        
-        return equipe;
-	}
 
 	/**
-	 * Vérifie si une Equipe existe.
-	 * 
+	 * VÃ©rifie si une Equipe existe.
 	 */
-	public boolean existe(String nomEquipe) {
-		stmtExiste.setParameter("nomEquipe", nomEquipe);
-		return !stmtExiste.getResultList().isEmpty();
-	}
-	
-	/**
-	 * Lecture d'une Equipe.
-	 * 
-	 */
-	public Equipe getEquipe(String nomEquipe){
-		stmtExiste.setParameter("nomEquipe", nomEquipe);
-		List<Equipe> equipes = stmtExiste.getResultList();
-		if (!equipes.isEmpty()) {
-			return equipes.get(0);
-		} else {
-			return null;
-		}
+	public boolean existe(String nomEquipe){
+		return equipesCollection.find(eq("nomEquipe", nomEquipe)).first() != null;
 	}
 	
 	/**
 	 * Verifie si un participant est deja capitain d'une equipe.
+	 */
+	/*public boolean testDejaCapitaine(String matricule) throws SQLException {
+		stmtExisteCapitaine.setString(1, matricule);
+		ResultSet rset = stmtExisteCapitaine.executeQuery();
+		boolean capiatineExiste = rset.next();
+		rset.close();
+		return capiatineExiste;
+	}*/
+
+	/**
+	 * Lecture d'une Equipe.
 	 * 
 	 */
-	public boolean testDejaCapitaine(String matricule) {
-		stmtExisteCapitaine.setParameter("matriculeCap", matricule);
-		List<Equipe> equipe = stmtExisteCapitaine.getResultList();
-		if(!equipe.isEmpty())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+	public Equipe getEquipe(String nomEquipe) {
+		Document e = equipesCollection.find(eq("nomEquipe", nomEquipe)).first();
+		if (e != null) {
+			return new Equipe(e);
+		}
+		return null;
 	}
 
-	 /**
-     * Suppression d'une Equipe.
-     */
-    public boolean supprimer(Equipe equipe)
-    {
-        if(equipe != null)
-        {
-            cx.getConnection().remove(equipe);
-            return true;
-        }
-        return false;
-    }
+	/**
+	 * Ajout d'une nouvelle equipe non vide.
+	 * 
+	 */
+	public void creer(String nomEquipe, String matriculeCap, String nomLigue) {
+		/* Ajout de l'equipe. */
+		Equipe e = new Equipe(nomEquipe, matriculeCap, nomLigue);
+
+		// Ajout d'une ligue.
+		equipesCollection.insertOne(e.toDocument());
+	}
+
+	/**
+	 * Suppression d'une equipe.
+	 */
+	public boolean supprimer(String nomEquipe) {
+		return equipesCollection.deleteOne(eq("nomEquipe", nomEquipe)).getDeletedCount() > 0;
+	}
 	
-    /**
-     * Retourne l'ensemble des equipes de la base de données
-     * @return
-     */
-    public List<Equipe> calculerListeEquipes()
-    {
-        return stmtListToutesEquipes.getResultList();
-    }
-    
-    /**
-     * Retourne l'ensemble des equipes d'une ligue de la base de données
-     * @return
-     */
-    public List<Equipe> calculerListeEquipesLigue(String nomLigue)
-    {
-    	stmtListToutesEquipesLigue.setParameter("nomLigue", nomLigue);
-        return stmtListToutesEquipesLigue.getResultList();
-    }
+	/**
+	 * Change le capitaine de l'equipe d'une equipe
+	 */
+	public void changerCapitaine(String nomEquipe, String matriculeCap) {
+		 equipesCollection.updateOne(eq("nomEquipe", nomEquipe), set("matriculeCap", matriculeCap)); 
+	}
+	
+
+	public void ajouterJoueur(String nomEquipe) {
+		equipesCollection.updateOne(eq("nomEquipe", nomEquipe), inc("nbParticipants", 1));
+	}
+
+	public void supprimerJoueur(String nomEquipe) {
+		equipesCollection.updateOne(eq("nomEquipe", nomEquipe), inc("nbParticipants", -1));
+	}
+	
+
+	public void ajouterResultat(String nomEquipe) {
+		equipesCollection.updateOne(eq("nomEquipe", nomEquipe), inc("nbResultats", 1));
+	}
+
+	public void supprimerResultat(String nomEquipe) {
+		equipesCollection.updateOne(eq("nomEquipe", nomEquipe), inc("nbResultats", -1));
+	}
+	
+	/**
+	 * Suppression des équipes d'une ligue.
+	 */
+	/*public int supprimerEquipesLigue(String nomLigue) throws SQLException {
+		stmtDeleteEquipesLigue.setString(1, nomLigue);
+		return stmtDeleteEquipesLigue.executeUpdate();
+	}*/
+	
+
+	/**
+	 * Lecture des equipes d'une ligue
+	 * 
+	 * @throws SQLException
+	 */
+	/*public ArrayList<Equipe> lectureEquipesLigue(String nomLigue) throws SQLException {
+		stmtDispEquipesLigue.setString(1, nomLigue);
+		ResultSet rset = stmtDispEquipesLigue.executeQuery();
+
+		ArrayList<Equipe> listEquipes = new ArrayList<Equipe>();
+
+		while (rset.next()) {
+			Equipe tupleEquipe = new Equipe();
+			tupleEquipe.setNomEquipe(rset.getString("nomEquipe"));
+			tupleEquipe.setMatriculeCap(rset.getString("matriculeCapitaine"));
+			tupleEquipe.setNomLigue(rset.getString("nomLigue"));
+			listEquipes.add(tupleEquipe);
+		}
+		rset.close();
+		return listEquipes;
+	}*/
+	
+	/**
+	 * Lecture des equipes de la table
+	 * 
+	 * @throws SQLException
+	 */
+	/*public ArrayList<Equipe> lectureEquipes() throws SQLException {
+		ResultSet rset = stmtDispEquipesParLigue.executeQuery();
+
+		ArrayList<Equipe> listEquipes = new ArrayList<Equipe>();
+
+		while (rset.next()) {
+			Equipe tupleEquipe = new Equipe();
+			tupleEquipe.setNomEquipe(rset.getString("nomEquipe"));
+			tupleEquipe.setMatriculeCap(rset.getString("matriculeCapitaine"));
+			tupleEquipe.setNomLigue(rset.getString("nomLigue"));
+			//rset.close();
+			listEquipes.add(tupleEquipe);
+		}
+		rset.close();
+		return listEquipes;
+	}*/
+
 }

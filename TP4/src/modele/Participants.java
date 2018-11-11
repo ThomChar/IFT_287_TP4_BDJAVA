@@ -1,34 +1,56 @@
 package modele;
 
-import java.util.List;
-
-import javax.persistence.TypedQuery;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+//import java.sql.Types;
+//import java.util.LinkedList;
+//import java.util.List;
+import java.util.ArrayList;
 
 import CentreSportif.Connexion;
 
 public class Participants {
 	
-	private Connexion cx;	
-	private TypedQuery<Participant> stmtExiste;
-	private TypedQuery<Participant> stmtDispByNomPrenomEquipeLigue;
-    private TypedQuery<Participant> stmtDispParticipants;
-    private TypedQuery<Participant> stmtDispParticipantsActifsEquipe;
-    private TypedQuery<Long> stmtNombreMembresEquipe;
-    private TypedQuery<Long> stmtNombreMembresLigue;
+	private PreparedStatement stmtExiste;
+	private PreparedStatement stmtExisteNom;
+	private PreparedStatement stmtExistePrenom;
+    private PreparedStatement stmtInsert;
+    private PreparedStatement stmtUpdate;
+    private PreparedStatement stmtUpdateNomPrenom;
+    private PreparedStatement stmtUpdateMotDePasse;
+    private PreparedStatement stmtDelete;
+    private PreparedStatement stmtDispParticipant;
+    private PreparedStatement stmtDispParticipantsActifsEquipe;
+    private PreparedStatement stmtNombreMembresEquipe;
+    private PreparedStatement stmtNombreMembresLigue;
+    private Connexion cx;
 
     /**
-     * Creation d'une instance. Des annones SQL pour chaque requête sont précompilés.
-     * @param cx
+     * Creation d'une instance. Des annones SQL pour chaque requête sont
+     * précompilés.
      */
-    public Participants(Connexion cx)
+    public Participants(Connexion cx) throws SQLException
     {
         this.cx = cx;
-        stmtExiste = cx.getConnection().createQuery("SELECT P FROM Participant P WHERE matricule = :matricule", Participant.class);
-        stmtDispByNomPrenomEquipeLigue = cx.getConnection().createQuery("SELECT P FROM Participant P WHERE nom LIKE :nom AND prenom LIKE :prenom, equipe.nomEquipe LIKE :nomEquipe, equipe.ligue.nomLigue LIKE :nomLigue", Participant.class);
-        stmtDispParticipants = cx.getConnection().createQuery("select P from Participant P", Participant.class);
-        stmtDispParticipantsActifsEquipe = cx.getConnection().createQuery("select P from Participant P where nomEquipe = :nomEquipe and statut = :statut", Participant.class);
-        stmtNombreMembresEquipe = cx.getConnection().createQuery("SELECT COUNT(P) AS nb FROM Participant P WHERE nomEquipe = :nomEquipe and statut = :statut ", Long.class);
-        stmtNombreMembresLigue = cx.getConnection().createQuery("SELECT COUNT(P) AS nb FROM Participant P WHERE P.equipe.ligue.nomLigue = :nomLigue AND statut = 'ACCEPTE'", Long.class);
+        /*stmtExiste = cx.getConnection().prepareStatement(
+                "select matricule, prenom, nom, motDePasse, nomEquipe, statut from Participant where matricule = ?");
+        stmtExisteNom = cx.getConnection().prepareStatement(
+                "select matricule, prenom, nom, motDePasse, nomEquipe, statut from Participant where nom = ?");
+        stmtExistePrenom = cx.getConnection().prepareStatement(
+                "select matricule, prenom, nom, motDePasse, nomEquipe, statut from Participant where prenom = ?");
+        stmtInsert = cx.getConnection()
+                .prepareStatement("insert into Participant (matricule, prenom, nom, motDePasse, nomEquipe, statut) "
+                        + "values (?,?,?,?,?,?)");
+        stmtUpdate = cx.getConnection()
+                .prepareStatement("update Participant set nomEquipe = ?, statut = ? " + "where matricule = ?");
+        stmtUpdateNomPrenom = cx.getConnection().prepareStatement("update Participant set nom = ?, prenom = ? " + "where matricule = ?");
+        stmtUpdateMotDePasse = cx.getConnection().prepareStatement("update Participant set motDePasse = ? " + "where matricule = ?");
+        stmtDelete = cx.getConnection().prepareStatement("delete from Participant where matricule = ?");
+        stmtDispParticipant = cx.getConnection().prepareStatement("select matricule, prenom, nom, motDePasse, nomEquipe, statut from Participant");
+        stmtDispParticipantsActifsEquipe = cx.getConnection().prepareStatement("select * from Participant where nomEquipe = ? and statut = ?");
+        stmtNombreMembresEquipe = cx.getConnection().prepareStatement("select COUNT(*) AS nb FROM Participant WHERE nomEquipe = ? and statut = ? ");
+        stmtNombreMembresLigue = cx.getConnection().prepareStatement("SELECT COUNT(*) AS nb FROM participant NATURAL JOIN equipe NATURAL JOIN ligue WHERE nomLigue = ? AND statut = 'ACCEPTE'");*/
     }
 
     /**
@@ -38,121 +60,243 @@ public class Participants {
     {
         return cx;
     }
-    
-    /**
-     * Ajouter un participant
-     * @param p
-     * @return le participant créé
-     */
-    public Participant creer(Participant p)
-    {
-    	cx.getConnection().persist(p);
-    	return p;
-    }
 
     /**
      * Vérifie si un participant existe.
-     * @param matricule
-     * @return vrai ou faux
+     * 
+     * @throws SQLException
      */
-    public boolean existe(String matricule)
+    public boolean existe(String matricule) throws SQLException
     {
-    	stmtExiste.setParameter("matricule", matricule);
-        return !stmtExiste.getResultList().isEmpty();
+        stmtExiste.setString(1, matricule);
+        ResultSet rset = stmtExiste.executeQuery();
+        boolean participantExiste = rset.next();
+        rset.close();
+        return participantExiste;
     }
     
     /**
-     * Suppression d'un participant du complexe.
-     * @param p
-     * @return vrai ou faux
+     * Vérifie si un prenom de participant existe.
+     * 
+     * @throws SQLException
      */
-    public boolean supprimer(Participant p)
+    public boolean existePrenom(String prenom) throws SQLException
     {
-    	if(p != null) {
-    		cx.getConnection().remove(p);
-    		return true;
-    	}
-    	return false;
+        stmtExistePrenom.setString(1, prenom);
+        ResultSet rset = stmtExistePrenom.executeQuery();
+        boolean participantExiste = rset.next();
+        rset.close();
+        return participantExiste;
     }
     
     /**
-     * Lecture d'un participant.
-     * @param matricule
-     * @return un participant
+     * Vérifie si un nom de participant existe.
+     * 
+     * @throws SQLException
      */
-    public Participant getParticipant(String matricule)
+    public boolean existeNom(String nom) throws SQLException
     {
-    	stmtExiste.setParameter("matricule", matricule);
-        List<Participant> participants = stmtExiste.getResultList();
-        if(!participants.isEmpty())
-        {
-            return participants.get(0);
-        }
-        else
-        {
-            return null;
-        }
+        stmtExisteNom.setString(1, nom);
+        ResultSet rset = stmtExisteNom.executeQuery();
+        boolean participantExiste = rset.next();
+        rset.close();
+        return participantExiste;
     }
 
     /**
-     * Lecture de tous les participants.
-     * @return liste de participants
+     * Lecture d'un participant.
+     * 
+     * @throws SQLException
      */
-    public List<Participant> lectureParticipants()
+    public Participant getParticipant(String matricule) throws SQLException
     {
-    	return stmtDispParticipants.getResultList();
+        stmtExiste.setString(1, matricule);
+        ResultSet rset = stmtExiste.executeQuery();
+        if (rset.next())
+        {
+        	Participant tupleParticipant = new Participant();
+        	tupleParticipant.setMatricule(matricule);
+        	tupleParticipant.setPrenom(rset.getString(2));
+        	tupleParticipant.setNom(rset.getString(3));
+        	tupleParticipant.setMotDePasse(rset.getString(4));
+        	tupleParticipant.setNomEquipe(rset.getString(5));
+        	tupleParticipant.setStatut(rset.getString(6));
+            rset.close();
+            return tupleParticipant;
+        }
+        else
+            return null;
+    }
+
+    /**
+     * Ajout d'un nouveau participant dans la base de données.
+     * 
+     * @throws SQLException 
+     */
+    public void ajouter(String matricule, String prenom, String nom, String motDePasse, String nomEquipe,
+			String statut) throws SQLException {
+    	
+        stmtInsert.setString(1, matricule);
+        stmtInsert.setString(2, prenom);
+        stmtInsert.setString(3, nom);
+        stmtInsert.setString(4, motDePasse);
+        stmtInsert.setString(5, nomEquipe);
+        stmtInsert.setString(6, statut);
+        stmtInsert.executeUpdate();
     }
     
     /**
-     * Lecture des participants de l'équipe
-     * @param nomEquipe
-     * @return liste de particpants
+     * Modifier nom et prenom d'un participant dans la base de données.
+     * 
+     * @throws SQLException 
      */
-	public List<Participant> lectureParticipants(String nomEquipe)
-	{
-		stmtDispParticipantsActifsEquipe.setParameter("nomEquipe", nomEquipe);
-		stmtDispParticipantsActifsEquipe.setParameter("statut", "ACCEPTE");
-        return stmtDispParticipantsActifsEquipe.getResultList();
+    public void modifierNomPrenom(String matricule, String prenom, String nom) throws SQLException {
+    	
+    	stmtUpdateNomPrenom.setString(3, matricule);
+    	stmtUpdateNomPrenom.setString(2, prenom);
+    	stmtUpdateNomPrenom.setString(1, nom);
+    	stmtUpdateNomPrenom.executeUpdate();
+    }
+    
+    /**
+     * Modifier motDePasse d'un participant dans la base de données.
+     * 
+     * @throws SQLException 
+     */
+    public void modifierMotDePasse(String matricule, String motDePasse) throws SQLException {
+    	
+    	stmtUpdateMotDePasse.setString(1, motDePasse);
+    	stmtUpdateMotDePasse.setString(2, matricule);
+    	stmtUpdateMotDePasse.executeUpdate();
+    }
+    
+    /**
+     * Accepter le participant dans une equipe.
+     * 
+     * @throws SQLException
+     */
+    
+    public int accepteParEquipe(String nomEquipe, String matricule) throws SQLException
+    {
+        stmtUpdate.setString(1, nomEquipe);
+        stmtUpdate.setString(2, "ACCEPTE");
+        stmtUpdate.setString(3, matricule);
+        return stmtUpdate.executeUpdate();
+    }
+
+    /**
+     * Ajouter Participant disponible dans une equipe
+     * 
+     * @throws SQLException
+     */
+    public int ajouteParEquipe(String nomEquipe, String matricule) throws SQLException
+    {
+    	stmtUpdate.setString(1, nomEquipe);
+        stmtUpdate.setString(2, "EN ATTENTE");
+        stmtUpdate.setString(3, matricule);
+        return stmtUpdate.executeUpdate();
+    }
+    
+    /**
+     * Refuser Participant disponible dans une equipe
+     * 
+     * @throws SQLException
+     */
+    public int refuseParEquipe(String nomEquipe, String matricule) throws SQLException
+    {
+    	stmtUpdate.setString(1, nomEquipe);
+        stmtUpdate.setString(2, "REFUSE");
+        stmtUpdate.setString(3, matricule);
+        return stmtUpdate.executeUpdate();
+    }
+    
+    /**
+     * Supprimer Participant dans une equipe
+     * 
+     * @throws SQLException
+     */
+    public int supprimeParEquipe(String nomEquipe, String matricule) throws SQLException
+    {
+    	stmtUpdate.setString(1, nomEquipe);
+        stmtUpdate.setString(2, "SUPPRIME");
+        stmtUpdate.setString(3, matricule);
+        return stmtUpdate.executeUpdate();
+    }
+
+    /**
+     * Suppression d'un participant du complexe.
+     * 
+     * @throws SQLException 
+     */
+    public int supprimer(String matricule) throws SQLException {
+        stmtDelete.setString(1, matricule);
+        return stmtDelete.executeUpdate();
+    }
+
+    /**
+     * Afficher les participants.
+     * 
+     * @throws SQLException
+     */ 
+    public void afficherParticipant() throws SQLException
+    {
+    	ResultSet rset = stmtDispParticipant.executeQuery();
+        rset.close();
+    }
+    
+    /**
+	 * Lecture des participants de l'équipe
+	 * 
+	 * @throws SQLException
+	 */
+	public ArrayList<Participant> lectureParticipants(String nomEquipe) throws SQLException {
+		stmtDispParticipantsActifsEquipe.setString(1, nomEquipe);
+		stmtDispParticipantsActifsEquipe.setString(2, "ACCEPTE");
+		ResultSet rset = stmtDispParticipantsActifsEquipe.executeQuery();
+		ArrayList<Participant> listeParticipants = new ArrayList<Participant>();
+		
+		while(rset.next()) {
+			Participant tupleParticipant = new Participant();
+        	tupleParticipant.setMatricule(rset.getString("matricule"));
+        	tupleParticipant.setPrenom(rset.getString("prenom"));
+        	tupleParticipant.setNom(rset.getString("nom"));
+        	tupleParticipant.setMotDePasse(rset.getString("motDePasse"));
+        	tupleParticipant.setNomEquipe(rset.getString("nomEquipe"));
+        	tupleParticipant.setStatut(rset.getString("statut"));
+            listeParticipants.add(tupleParticipant);
+		}
+		rset.close();
+		return listeParticipants;		
 	}
 	
 	/**
 	 * Compter nombres de particpants dans une équipe
-	 * @param nomEquipe
-	 * @return nombre de membres dans une équipe
+	 * 
+	 * @throws SQLException
 	 */
-	public long nombreMembresEquipe(String nomEquipe)
+	public int nombreMembresEquipe(String nomEquipe) throws SQLException
 	{
-		stmtNombreMembresEquipe.setParameter("nomEquipe", nomEquipe);
-		stmtNombreMembresEquipe.setParameter("statut", "ACCEPTE");
-		return stmtNombreMembresEquipe.getSingleResult();
+		stmtNombreMembresEquipe.setString(1, nomEquipe);
+		stmtNombreMembresEquipe.setString(2, "ACCEPTE");
+		ResultSet rset = stmtNombreMembresEquipe.executeQuery();
+		rset.next();
+		int nb = rset.getInt("nb");
+		rset.close();
+		return nb;
 	}
 	
 	/**
 	 * Compter nombres de particpants dans une ligue
-	 * @param nomLigue
-	 * @return nombre de membres dans une ligue
+	 * 
+	 * @throws SQLException
 	 */
-	public long nombreMembresLigue(String nomLigue)
+	public int nombreMembresLigue(String nomLigue) throws SQLException
 	{
-		stmtNombreMembresLigue.setParameter("nomLigue", nomLigue);
-		stmtNombreMembresLigue.setParameter("statut", "ACCEPTE");
-		return stmtNombreMembresLigue.getSingleResult();
+		stmtNombreMembresLigue.setString(1, nomLigue);
+		ResultSet rset = stmtNombreMembresLigue.executeQuery();
+		rset.next();
+		int nb = rset.getInt("nb");
+		rset.close();
+		return nb;
 	}
-	
-    /**
-     * retourne la liste des partcipants pour une recherche sur le nom et prénom participant, le nom de l'équipe et le nom de la ligue
-     * @param nom
-     * @param prenom
-     * @param nomEquipe
-     * @param nomLigue
-     * @return
-     */
-    public List<Participant> dispParticipantByNomPrenomEquipeLigue(String nom, String prenom, String nomEquipe, String nomLigue)
-    {
-    	stmtDispByNomPrenomEquipeLigue.setParameter("nom", "%"+nom+"%");
-    	stmtDispByNomPrenomEquipeLigue.setParameter("prenom", "%"+prenom+"%");
-    	stmtDispByNomPrenomEquipeLigue.setParameter("nomEquipe", "%"+nomEquipe+"%");
-    	stmtDispByNomPrenomEquipeLigue.setParameter("nomLigue", "%"+nomLigue+"%");
-    	return stmtDispByNomPrenomEquipeLigue.getResultList();
-    }
  }
