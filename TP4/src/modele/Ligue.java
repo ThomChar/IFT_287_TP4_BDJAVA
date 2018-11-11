@@ -1,29 +1,17 @@
 package modele;
 
-import java.util.LinkedList;
-import java.util.List;
+//import java.util.LinkedList;
+//import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
+import org.bson.Document;
 
-@Entity
 public class Ligue {
-	
-	@Id
-	@GeneratedValue
-	private long id_ligue;
 	
 	// Attributes
 	private String nomLigue;
-	
-	@OneToMany(mappedBy = "ligue", cascade = CascadeType.ALL)
-	@OrderBy("nomEquipe")
-	private List<Equipe> listEquipes;
+	//private List<Equipe> listEquipes;
 	private int nbJoueurMaxParEquipe;
+	private int nbEquipes;
 
 	/**
 	 * constructeur par défaut
@@ -38,9 +26,21 @@ public class Ligue {
 	 */
 	public Ligue(String nomLigue, int nbJoueurMaxParEquipe) {
 		this.nomLigue = nomLigue;
-		this.listEquipes = new LinkedList<Equipe>(); //new LinkedList<Equipe>()
+		//this.listEquipes = new LinkedList<Equipe>(); //new LinkedList<Equipe>()
 		this.setNbJoueurMaxParEquipe(nbJoueurMaxParEquipe);
+		this.nbEquipes = 0;
 	}
+	
+	/**
+	 * Constructeur prenant les informations du document d
+	 * @param d
+	 */
+	public Ligue(Document d)
+    {
+    	this.nomLigue = d.getString("nomLigue");
+    	this.nbJoueurMaxParEquipe = d.getInteger("nbJoueurMaxParEquipe");
+    	this.nbEquipes = d.getInteger("nbEquipes");
+    }
 	
 	/**
 	 * Constructeur de confort à 3 arguments
@@ -48,12 +48,12 @@ public class Ligue {
 	 * @param listEquipes
 	 * @param nbJoueurMaxParEquipe
 	 */
-	public Ligue(String nomLigue, List<Equipe> listEquipes, int nbJoueurMaxParEquipe) {
+	/*public Ligue(String nomLigue, List<Equipe> listEquipes, int nbJoueurMaxParEquipe) {
 		super();
 		this.nomLigue = nomLigue;
 		this.listEquipes = listEquipes;
 		this.setNbJoueurMaxParEquipe(nbJoueurMaxParEquipe);
-	}
+	}*/
 
 	/**
 	 * Les getters et setters
@@ -66,13 +66,13 @@ public class Ligue {
 		this.nomLigue = nomLigue;
 	}
 
-	public List<Equipe> getListEquipes() {
+	/*public List<Equipe> getListEquipes() {
 		return listEquipes;
 	}
 
 	public void setListEquipes(List<Equipe> listEquipes) {
 		this.listEquipes = listEquipes;
-	}
+	}*/
 
 	public int getNbJoueurMaxParEquipe() {
 		return nbJoueurMaxParEquipe;
@@ -81,26 +81,45 @@ public class Ligue {
 	public void setNbJoueurMaxParEquipe(int nbJoueurMaxParEquipe) {
 		this.nbJoueurMaxParEquipe = nbJoueurMaxParEquipe;
 	}
+	
+	public int getNbEquipes() {
+		return nbEquipes;
+	}
+
+	public void setNbEquipes(int nbEquipes) {
+		this.nbEquipes = nbEquipes;
+	}
 
 	/**
 	 * Ajout une equipe à la liste d'equipe d'une ligue
-	 * @param equipe
 	 */
-	public void ajouteEquipe(Equipe equipe) {
-		listEquipes.add(equipe);
+	public void ajouterEquipe() {
+		this.nbEquipes++;
 	}
+	/*public void ajouteEquipe(Equipe equipe) {
+		listEquipes.add(equipe);
+	}*/
 
 	/**
 	 * Supprime une equipe de la liste d'equipe d'une ligue
-	 * @param equipe
 	 */
-	public void supprimerEquipe(Equipe equipe) {
-		listEquipes.remove(equipe);
+	public void supprimerEquipe() {
+		this.nbEquipes--;
 	}
+	/*public void supprimerEquipe(Equipe equipe) {
+		listEquipes.remove(equipe);
+	}*/
 
 	@Override
 	public String toString() {
-		return "Ligue [nomLigue=" + nomLigue + ", listEquipes=" + listEquipes + ", nbJoueurMaxParEquipe="
+		return "Ligue [nomLigue= " + nomLigue + ", nbJoueurMaxParEquipe= "
 				+ nbJoueurMaxParEquipe + "]";
 	}
+	
+	 public Document toDocument()
+	    {
+	    	return new Document().append("nomLigue", nomLigue)
+	    			             .append("nbJoueurMaxParEquipe", nbJoueurMaxParEquipe)
+	    			             .append("nbEquipes", nbEquipes);
+	    }
 }

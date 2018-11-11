@@ -1,23 +1,14 @@
 package modele;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import org.bson.Document;
 
-@Entity
 public class Resultat {
 	
-	@Id
-    @GeneratedValue
-    private long id_resultat;
-	
 	//Attributes
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Equipe equipeA;
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Equipe equipeB;
+	//private Equipe equipeA;
+	//private Equipe equipeB;
+	private String nomEquipeA;
+	private String nomEquipeB;
 	private int scoreEquipeA;
 	private int scoreEquipeB;
 		
@@ -34,9 +25,22 @@ public class Resultat {
 	 * @param scoreEquipeA
 	 * @param scoreEquipeB
 	 */
-	public Resultat(Equipe equipeA, Equipe equipeB, int scoreEquipeA, int scoreEquipeB) {
-		this.equipeA = equipeA;
-		this.equipeB = equipeB;
+	
+	/**
+	 * Constructeur prenant les informations du document d
+	 * @param d
+	 */
+	public Resultat(Document d)
+    {
+    	this.nomEquipeA = d.getString("nomEquipeA");
+    	this.nomEquipeB = d.getString("nomEquipeB");
+    	this.scoreEquipeA = d.getInteger("scoreEquipeA");
+    	this.scoreEquipeB = d.getInteger("scoreEquipeB");
+    }
+	
+	public Resultat(String nomEquipeA, String nomEquipeB, int scoreEquipeA, int scoreEquipeB) {
+		this.nomEquipeA = nomEquipeA;
+		this.nomEquipeB = nomEquipeB;
 		this.scoreEquipeA = scoreEquipeA;
 		this.scoreEquipeB = scoreEquipeB;
 	}
@@ -44,7 +48,7 @@ public class Resultat {
 	/**
 	 * Les getteurs et setters
 	 */
-	public Equipe getEquipeA() {
+	/*public Equipe getEquipeA() {
 		return equipeA;
 	}
 	
@@ -56,7 +60,24 @@ public class Resultat {
 	}
 	public void setEquipeB(Equipe equipeB) {
 		this.equipeB = equipeB;
+	}*/
+	
+	public String getNomEquipeA() {
+		return nomEquipeA;
 	}
+
+	public void setNomEquipeA(String nomEquipeA) {
+		this.nomEquipeA = nomEquipeA;
+	}
+
+	public String getNomEquipeB() {
+		return nomEquipeB;
+	}
+
+	public void setNomEquipeB(String nomEquipeB) {
+		this.nomEquipeB = nomEquipeB;
+	}
+	
 	public int getScoreEquipeA() {
 		return scoreEquipeA;
 	}
@@ -72,7 +93,15 @@ public class Resultat {
 
 	@Override
 	public String toString() {
-		return "\nResultat [nomEquipeA=" + equipeA.getNomEquipe() + ", nomEquipeB=" + equipeB.getNomEquipe() + ", scoreEquipeA=" + scoreEquipeA
+		return "\nResultat [nomEquipeA=" + nomEquipeA + ", nomEquipeB=" + nomEquipeB + ", scoreEquipeA=" + scoreEquipeA
 				+ ", scoreEquipeB=" + scoreEquipeB + "]";
+	}
+	
+	public Document toDocument()
+	{
+	   return new Document().append("nomEquipeA", nomEquipeA)
+	   			         	.append("nomEquipeB", nomEquipeB)
+	   			         	.append("scoreEquipeA", scoreEquipeA)
+	   			         	.append("scoreEquipeB", scoreEquipeB);
 	}
 }

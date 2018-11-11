@@ -1,32 +1,37 @@
 package modele;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import org.bson.Document;
 
-@Entity
 public class Participant {
-	
-	@Id
-    @GeneratedValue
-    private long id_participant;
-	
+
 	//Attributes
 	private String matricule;
 	private String prenom;
 	private String nom;
 	private String motDePasse;
 	private String statut;
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Equipe equipe;
+	//private Equipe equipe;
+	private String nomEquipe;
 	
 	/**
 	 * constructeur par défaut
 	 */
 	public Participant() {
 	}
+	
+	/**
+	 * Constructeur prenant les informations du document d
+	 * @param d
+	 */
+	public Participant(Document d)
+    {
+    	this.matricule = d.getString("matricule");
+    	this.prenom = d.getString("prenom");
+    	this.nom = d.getString("nom");
+    	this.motDePasse = d.getString("motDePasse");
+    	this.statut = d.getString("statut");
+    	this.nomEquipe = d.getString("nomEquipe");
+    }
 	
 	/**
 	 * constructeur à 4 arguments
@@ -40,7 +45,8 @@ public class Participant {
 		this.prenom = prenom;
 		this.nom = nom;
 		this.motDePasse = motDePasse;
-		this.equipe = null;
+		//this.equipe = null;
+		this.setNomEquipe(null);
 		this.statut = null;
 	}
 	
@@ -52,12 +58,12 @@ public class Participant {
 	 * @param motDePasse
 	 * @param equipe
 	 */
-	public Participant(String matricule, String prenom, String nom, String motDePasse, Equipe equipe) {
+	public Participant(String matricule, String prenom, String nom, String motDePasse, String nomEquipe) {
 		this.matricule = matricule;
 		this.prenom = prenom;
 		this.nom = nom;
 		this.motDePasse = motDePasse;
-		this.equipe = equipe;
+		this.setNomEquipe(nomEquipe);
 		this.statut = null;
 	}
 	
@@ -90,13 +96,13 @@ public class Participant {
 		this.motDePasse = motDePasse;
 	}
 	
-	public Equipe getEquipe() {
+	/*public Equipe getEquipe() {
 		return equipe;
 	}
 
 	public void setEquipe(Equipe equipe) {
 		this.equipe = equipe;
-	}
+	}*/
 	
 	public String getStatut() {
 		return statut;
@@ -104,6 +110,15 @@ public class Participant {
 
 	public void setStatut(String statut) {
 		this.statut = statut;
+	}
+	
+
+	public String getNomEquipe() {
+		return nomEquipe;
+	}
+
+	public void setNomEquipe(String nomEquipe) {
+		this.nomEquipe = nomEquipe;
 	}
 	
 	/**
@@ -122,5 +137,15 @@ public class Participant {
 	public String toString() {
 		return "\nParticipant [matricule=" + matricule + ", prenom=" + prenom + ", nom=" + nom + ", motDePasse="
 				+ motDePasse + " statut=" + statut + "]";
+	}
+	
+	public Document toDocument()
+	{
+	    return new Document().append("matricule", matricule)
+	    			         .append("prenom", prenom)
+	    			         .append("nom", nom)
+	    			         .append("motDePasse", motDePasse)
+	    			         .append("statut", statut)
+	    					 .append("nomEquipe", nomEquipe);
 	}
 }

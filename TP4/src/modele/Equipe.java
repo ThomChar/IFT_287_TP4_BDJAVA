@@ -1,38 +1,26 @@
 package modele;
 
-import java.util.LinkedList;
-import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.OrderBy;
+import org.bson.Document;
 
-@Entity
+//import java.util.LinkedList;
+//import java.util.List;
+
 public class Equipe {
-	@Id
-    @GeneratedValue
-    private long id_equipe;
-	
+
 	//Attributes
 	private String nomEquipe;
 	
-	@OneToMany(mappedBy = "equipe", cascade = CascadeType.ALL)
-	@OrderBy("nom")
-	private List<Participant> listParticipants;
+	//private List<Participant> listParticipants;
+	private int nbParticipants;
 	
-	@OneToOne
-	private Participant capitaine;
+	//private Participant capitaine;
+	private String matriculeCap;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Ligue ligue;
+	//private Ligue ligue;
+	private String nomLigue;
 	
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	private List<Resultat> listResultats;
+	//private List<Resultat> listResultats;
+	private int nbResultats;
 	
 	/**
 	 * Constructeur par défaut
@@ -41,17 +29,34 @@ public class Equipe {
 	}
 	
 	/**
+	 * Constructeur prenant les informations du document d
+	 * @param d
+	 */
+	public Equipe(Document d)
+    {
+    	this.nomLigue = d.getString("nomLigue");
+    	this.nomEquipe = d.getString("nomEquipe");
+    	this.matriculeCap = d.getString("matriculeCap");
+    	this.nbParticipants = d.getInteger("nbParticipants");
+    	this.nbResultats = d.getInteger("nbResultats");
+    }
+	
+	/**
 	 * Constructeur de confort à 3 éléments
 	 * @param ligue
 	 * @param nomEquipe
 	 * @param capitaine
 	 */
-	public Equipe(Ligue ligue, String nomEquipe, Participant capitaine) {
+	public Equipe(String nomLigue, String nomEquipe, String matriculeCap) {
 		this.nomEquipe = nomEquipe;
-		this.listParticipants = new LinkedList<Participant>();
-		this.capitaine = capitaine;
-		this.ligue = ligue;
-		this.listResultats = new LinkedList<Resultat>();
+		//this.listParticipants = new LinkedList<Participant>();
+		//this.capitaine = capitaine;
+		//this.ligue = ligue;
+		//this.listResultats = new LinkedList<Resultat>();
+		this.nbParticipants = 1;
+		this.matriculeCap = matriculeCap;
+		this.nomLigue = nomLigue;
+		this.nbResultats = 0;
 	}
 
 	/**
@@ -65,7 +70,7 @@ public class Equipe {
 		this.nomEquipe = nomEquipe;
 	}
 
-	public List<Participant> getListParticipants() {
+	/*public List<Participant> getListParticipants() {
 		return listParticipants;
 	}
 
@@ -95,61 +100,110 @@ public class Equipe {
 
 	public void setListResultats(List<Resultat> listResultat) {
 		this.listResultats = listResultat;
+	}*/
+	
+	public int getNbParticipants() {
+		return nbParticipants;
+	}
+
+	public void setNbParticipants(int nbParticipants) {
+		this.nbParticipants = nbParticipants;
+	}
+
+	public String getMatriculeCap() {
+		return matriculeCap;
+	}
+
+	public void setMatriculeCap(String matriculeCap) {
+		this.matriculeCap = matriculeCap;
+	}
+
+	public String getNomLigue() {
+		return nomLigue;
+	}
+
+	public void setNomLigue(String nomLigue) {
+		this.nomLigue = nomLigue;
+	}
+
+	public int getNbResultats() {
+		return nbResultats;
+	}
+
+	public void setNbResultats(int nbResultats) {
+		this.nbResultats = nbResultats;
 	}
 	
 	/**
 	 * Ajoute un participant à la liste de participants d'une equipe
-	 * @param participant
 	 */
-	public void ajouterJoueur(Participant participant) {
-		listParticipants.add(participant);
+	public void ajouterJoueur() {
+		this.nbParticipants++;
 	}
+	/*public void ajouterJoueur(Participant participant) {
+		listParticipants.add(participant);
+	}*/
 	
 	/**
 	 * Supprime un participant de la liste de participants d'une equipe
-	 * @param equipe
 	 */
-	public void supprimerJoueur(Participant participant) {
-		listParticipants.remove(participant);
+	public void supprimerJoueur() {
+		this.nbParticipants--;
 	}
+	/*public void supprimerJoueur(Participant participant) {
+		listParticipants.remove(participant);
+	}*/
 	
 	/**
 	 * Ajoute un resultat à la liste de resultats d'une equipe
-	 * @param equipe
 	 */
-	public void ajouterResultat(Resultat resultat) {
-		listResultats.add(resultat);
+	public void ajouterResultat() {
+		this.nbResultats++;
 	}
+	/*public void ajouterResultat(Resultat resultat) {
+		listResultats.add(resultat);
+	}*/
 	
 	/**
 	 * Supprime un resultat de la liste de resultats d'une equipe
-	 * @param equipe
 	 */
-	public void supprimerResultat(Resultat resultat) {
-		listResultats.remove(resultat);
+	public void supprimerResultat() {
+		this.nbResultats--;
 	}
+	/*public void supprimerResultat(Resultat resultat) {
+		listResultats.remove(resultat);
+	}*/
 	
 	public boolean isActive() {
 		boolean testIsActive = true;
-		if(this.getListParticipants().size() == 0) {
+		if(this.nbParticipants == 0) {
 			testIsActive = false;
 		}
 		return testIsActive;
 	}
 
-	@Override
+	/*@Override
 	public String toString() {
 		String cap = "null";
-		if(capitaine != null)
-			cap = capitaine.getMatricule();
+		if(matriculeCap != null)
+			cap = matriculeCap;
 		
-		return "\nEquipe [nomEquipe=" + nomEquipe + ", matriculeCap="+ cap + ", nomLigue=" + ligue.getNomLigue() + ",\nlistParticipants=" + listParticipants + ",\nlistResultats=" + listResultats + "]";
-	}
+		return "\nEquipe [nomEquipe=" + nomEquipe + ", matriculeCap="+ cap + ", nomLigue=" + nomLigue + ",\nlistParticipants=" + listParticipants + ",\nlistResultats=" + listResultats + "]";
+	}*/
 	public String toStringSimpleEquipe() {
 		String cap = "null";
-		if(capitaine != null)
-			cap = capitaine.getMatricule();
+		if(matriculeCap != null)
+			cap = matriculeCap;
 		
-		return "\nEquipe [nomEquipe=" + nomEquipe + ", matriculeCap="+ cap + ", nomLigue=" + ligue.getNomLigue() + "]";
+		return "\nEquipe [nomEquipe=" + nomEquipe + ", matriculeCap="+ cap + ", nomLigue=" + nomLigue + "]";
+	}
+	
+	 public Document toDocument()
+	{
+	    return new Document().append("nomLigue", nomLigue)
+	    			         .append("nomEquipe", nomEquipe)
+	    			         .append("matriculeCap", matriculeCap)
+	    			         .append("nbParticipants", nbParticipants)
+	    			         .append("nbResultats", nbResultats);
 	}
 }
