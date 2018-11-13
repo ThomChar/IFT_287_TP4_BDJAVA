@@ -45,14 +45,10 @@ public class Equipe {
 	 * Constructeur de confort à 3 éléments
 	 * @param ligue
 	 * @param nomEquipe
-	 * @param capitaine
+	 * @param matriculeCap
 	 */
 	public Equipe(String nomLigue, String nomEquipe, String matriculeCap) {
 		this.nomEquipe = nomEquipe;
-		//this.listParticipants = new LinkedList<Participant>();
-		//this.capitaine = capitaine;
-		//this.ligue = ligue;
-		//this.listResultats = new LinkedList<Resultat>();
 		this.nbParticipants = 1;
 		this.matriculeCap = matriculeCap;
 		this.nomLigue = nomLigue;
@@ -69,38 +65,6 @@ public class Equipe {
 	public void setNomEquipe(String nomEquipe) {
 		this.nomEquipe = nomEquipe;
 	}
-
-	/*public List<Participant> getListParticipants() {
-		return listParticipants;
-	}
-
-	public void setListParticipants(List<Participant> listParticipants) {
-		this.listParticipants = listParticipants;
-	}
-
-	public Participant getCapitaine() {
-		return capitaine;
-	}
-
-	public void setCapitaine(Participant capitaine) {
-		this.capitaine = capitaine;
-	}
-
-	public Ligue getLigue() {
-		return ligue;
-	}
-
-	public void setLigue(Ligue ligue) {
-		this.ligue = ligue;
-	}
-
-	public List<Resultat> getListResultats() {
-		return listResultats;
-	}
-
-	public void setListResultats(List<Resultat> listResultat) {
-		this.listResultats = listResultat;
-	}*/
 	
 	public int getNbParticipants() {
 		return nbParticipants;
@@ -140,9 +104,6 @@ public class Equipe {
 	public void ajouterJoueur() {
 		this.nbParticipants++;
 	}
-	/*public void ajouterJoueur(Participant participant) {
-		listParticipants.add(participant);
-	}*/
 	
 	/**
 	 * Supprime un participant de la liste de participants d'une equipe
@@ -150,9 +111,6 @@ public class Equipe {
 	public void supprimerJoueur() {
 		this.nbParticipants--;
 	}
-	/*public void supprimerJoueur(Participant participant) {
-		listParticipants.remove(participant);
-	}*/
 	
 	/**
 	 * Ajoute un resultat à la liste de resultats d'une equipe
@@ -160,9 +118,6 @@ public class Equipe {
 	public void ajouterResultat() {
 		this.nbResultats++;
 	}
-	/*public void ajouterResultat(Resultat resultat) {
-		listResultats.add(resultat);
-	}*/
 	
 	/**
 	 * Supprime un resultat de la liste de resultats d'une equipe
@@ -170,9 +125,6 @@ public class Equipe {
 	public void supprimerResultat() {
 		this.nbResultats--;
 	}
-	/*public void supprimerResultat(Resultat resultat) {
-		listResultats.remove(resultat);
-	}*/
 	
 	public boolean isActive() {
 		boolean testIsActive = true;
@@ -181,24 +133,13 @@ public class Equipe {
 		}
 		return testIsActive;
 	}
-
-	/*@Override
-	public String toString() {
-		String cap = "null";
-		if(matriculeCap != null)
-			cap = matriculeCap;
-		
-		return "\nEquipe [nomEquipe=" + nomEquipe + ", matriculeCap="+ cap + ", nomLigue=" + nomLigue + ",\nlistParticipants=" + listParticipants + ",\nlistResultats=" + listResultats + "]";
-	}*/
-	public String toStringSimpleEquipe() {
-		String cap = "null";
-		if(matriculeCap != null)
-			cap = matriculeCap;
-		
-		return "\nEquipe [nomEquipe=" + nomEquipe + ", matriculeCap="+ cap + ", nomLigue=" + nomLigue + "]";
-	}
 	
-	 public Document toDocument()
+	 @Override
+	public String toString() {
+		return "Equipe '"+ nomEquipe + "' (matriculeCap=" + matriculeCap + ", nomLigue=" + nomLigue +")";
+	}
+
+	public Document toDocument()
 	{
 	    return new Document().append("nomLigue", nomLigue)
 	    			         .append("nomEquipe", nomEquipe)

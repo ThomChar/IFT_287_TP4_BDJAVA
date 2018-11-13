@@ -112,10 +112,10 @@ public class Ligue {
 
 	@Override
 	public String toString() {
-		return "Ligue [nomLigue= " + nomLigue + ", nbJoueurMaxParEquipe= "
-				+ nbJoueurMaxParEquipe + "]";
+		return "Ligue '"+ nomLigue + "' (nbJoueurMaxParEquipe= "
+				+ nbJoueurMaxParEquipe + ")";
 	}
-	
+
 	 public Document toDocument()
 	    {
 	    	return new Document().append("nomLigue", nomLigue)

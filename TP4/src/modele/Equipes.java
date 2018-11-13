@@ -3,8 +3,14 @@ package modele;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.inc;
 import static com.mongodb.client.model.Updates.set;
+
+import java.util.ArrayList;
+
 import org.bson.Document;
+
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+
 import CentreSportif.Connexion;
 
 public class Equipes {
@@ -26,6 +32,18 @@ public class Equipes {
 	public Connexion getConnexion() {
 		return cx;
 	}
+	
+	/**
+	 * Ajout d'une nouvelle equipe non vide.
+	 * 
+	 */
+	public void creer(String nomEquipe, String matriculeCap, String nomLigue) {
+
+		Equipe e = new Equipe(nomEquipe, matriculeCap, nomLigue);
+
+		// Ajout d'une ligue.
+		equipesCollection.insertOne(e.toDocument());
+	}
 
 	/**
 	 * VÃ©rifie si une Equipe existe.
@@ -37,13 +55,9 @@ public class Equipes {
 	/**
 	 * Verifie si un participant est deja capitain d'une equipe.
 	 */
-	/*public boolean testDejaCapitaine(String matricule) throws SQLException {
-		stmtExisteCapitaine.setString(1, matricule);
-		ResultSet rset = stmtExisteCapitaine.executeQuery();
-		boolean capiatineExiste = rset.next();
-		rset.close();
-		return capiatineExiste;
-	}*/
+	public boolean testDejaCapitaine(String matricule) {
+		return equipesCollection.find(eq("matriculeCap", matricule)).first() != null;
+	}
 
 	/**
 	 * Lecture d'une Equipe.
@@ -56,19 +70,7 @@ public class Equipes {
 		}
 		return null;
 	}
-
-	/**
-	 * Ajout d'une nouvelle equipe non vide.
-	 * 
-	 */
-	public void creer(String nomEquipe, String matriculeCap, String nomLigue) {
-		/* Ajout de l'equipe. */
-		Equipe e = new Equipe(nomEquipe, matriculeCap, nomLigue);
-
-		// Ajout d'une ligue.
-		equipesCollection.insertOne(e.toDocument());
-	}
-
+	
 	/**
 	 * Suppression d'une equipe.
 	 */
@@ -83,7 +85,6 @@ public class Equipes {
 		 equipesCollection.updateOne(eq("nomEquipe", nomEquipe), set("matriculeCap", matriculeCap)); 
 	}
 	
-
 	public void ajouterJoueur(String nomEquipe) {
 		equipesCollection.updateOne(eq("nomEquipe", nomEquipe), inc("nbParticipants", 1));
 	}
@@ -91,7 +92,6 @@ public class Equipes {
 	public void supprimerJoueur(String nomEquipe) {
 		equipesCollection.updateOne(eq("nomEquipe", nomEquipe), inc("nbParticipants", -1));
 	}
-	
 
 	public void ajouterResultat(String nomEquipe) {
 		equipesCollection.updateOne(eq("nomEquipe", nomEquipe), inc("nbResultats", 1));
@@ -104,54 +104,39 @@ public class Equipes {
 	/**
 	 * Suppression des équipes d'une ligue.
 	 */
-	/*public int supprimerEquipesLigue(String nomLigue) throws SQLException {
-		stmtDeleteEquipesLigue.setString(1, nomLigue);
-		return stmtDeleteEquipesLigue.executeUpdate();
-	}*/
+	public boolean supprimerEquipesLigue(String nomLigue) {
+		return equipesCollection.deleteMany(eq("nomLigue", nomLigue)).getDeletedCount() > 0;
+	}
 	
-
 	/**
 	 * Lecture des equipes d'une ligue
 	 * 
 	 * @throws SQLException
 	 */
-	/*public ArrayList<Equipe> lectureEquipesLigue(String nomLigue) throws SQLException {
-		stmtDispEquipesLigue.setString(1, nomLigue);
-		ResultSet rset = stmtDispEquipesLigue.executeQuery();
-
+	public ArrayList<Equipe> lectureEquipesLigue(String nomLigue) {
 		ArrayList<Equipe> listEquipes = new ArrayList<Equipe>();
-
-		while (rset.next()) {
-			Equipe tupleEquipe = new Equipe();
-			tupleEquipe.setNomEquipe(rset.getString("nomEquipe"));
-			tupleEquipe.setMatriculeCap(rset.getString("matriculeCapitaine"));
-			tupleEquipe.setNomLigue(rset.getString("nomLigue"));
-			listEquipes.add(tupleEquipe);
+		
+		MongoCursor<Document> eqs = equipesCollection.find(eq("nomLigue", nomLigue)).iterator();
+		if (eqs.hasNext()) {
+			listEquipes.add(new Equipe(eqs.next()));
 		}
-		rset.close();
+		
 		return listEquipes;
-	}*/
+	}
 	
 	/**
 	 * Lecture des equipes de la table
 	 * 
 	 * @throws SQLException
 	 */
-	/*public ArrayList<Equipe> lectureEquipes() throws SQLException {
-		ResultSet rset = stmtDispEquipesParLigue.executeQuery();
-
+	public ArrayList<Equipe> lectureEquipes() {
 		ArrayList<Equipe> listEquipes = new ArrayList<Equipe>();
-
-		while (rset.next()) {
-			Equipe tupleEquipe = new Equipe();
-			tupleEquipe.setNomEquipe(rset.getString("nomEquipe"));
-			tupleEquipe.setMatriculeCap(rset.getString("matriculeCapitaine"));
-			tupleEquipe.setNomLigue(rset.getString("nomLigue"));
-			//rset.close();
-			listEquipes.add(tupleEquipe);
+		
+		MongoCursor<Document> eqs = equipesCollection.find().iterator();
+		if (eqs.hasNext()) {
+			listEquipes.add(new Equipe(eqs.next()));
 		}
-		rset.close();
+		
 		return listEquipes;
-	}*/
-
+	}
 }

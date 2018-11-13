@@ -1,52 +1,62 @@
 package modele;
 
-import java.util.ArrayList;
+
+import java.util.List;
+
 import CentreSportif.IFT287Exception;
 
 public class GestionEquipe {
 
-	private Equipes equipe;
-	private Ligues ligue;
-	private Participants participant;
-	private Resultats resultat;
+	private Equipes equipes;
+	private Ligues ligues;
+	private Participants participants;
+	private Resultats resultats;
 
 	/**
 	 * Creation d'une instance
+	 * @param equipes
+	 * @param participants
+	 * @param ligues
+	 * @throws IFT287Exception
 	 */
-	public GestionEquipe(Equipes equipe, Participants participant, Ligues ligue, Resultats resultat)
+	public GestionEquipe(Equipes equipes, Participants participants, Ligues ligues, Resultats resultats)
 			throws IFT287Exception {
-		if (equipe.getConnexion() == ligue.getConnexion() && participant.getConnexion() == equipe.getConnexion()
-				&& equipe.getConnexion() == resultat.getConnexion()
-				&& ligue.getConnexion() == resultat.getConnexion()) {
-			this.equipe = equipe;
-			this.participant = participant;
-			this.ligue = ligue;
-			this.resultat = resultat;
-		} else {
-			throw new IFT287Exception(
-					"Les instances de participant et de resultat n'utilisent pas la même connexion au serveur");
-		}
+		if (equipes.getConnexion() != ligues.getConnexion() || equipes.getConnexion() != participants.getConnexion()
+				|| equipes.getConnexion() != resultats.getConnexion())
+		    		throw new IFT287Exception("Les différents gestionnaires (equipes, partcipants, ligues, resultats) n'utilisent pas la même connexion au serveur");
+			this.equipes = equipes;
+			this.participants = participants;
+			this.ligues = ligues;
+			this.resultats = resultats;
 	}
 
 	/**
-	 * Ajout d'une nouvelle equipe dans la base de données. Si elle existe déjà , une
-	 * exception est levée.
-	 * @throws IFT287Exception, Exception
+	 * Ajout d'une nouvelle equipe.
+	 * @param nomEquipe
+	 * @param matriculeCap
+	 * @param nomLigue
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
 	public void ajouter(String nomEquipe, String matriculeCap, String nomLigue)
 			throws IFT287Exception, Exception {
 		try {
-			// Vérifie si l equipe existe déjà
-		
-			/*if (equipe.testDejaCapitaine(matriculeCap))
-				throw new IFT287Exception("Ce participant est deja capitaine : ");*/
-			if (!ligue.existe(nomLigue))
-				throw new IFT287Exception("Ligue " + nomLigue + " n'existe pas : ");
-			if (!participant.existe(matriculeCap))
-				throw new IFT287Exception("Ligue " + nomLigue + " n'existe pas : ");
+			// Vérifications
+			if(equipes.existe(nomEquipe))
+				throw new IFT287Exception("L'équipe '" + nomEquipe + "' existe déjà.");
+			if (!participants.existe(matriculeCap))
+				throw new IFT287Exception("Le participant ayant le matricule '" + matriculeCap + "' n'existe pas.");
+			if (equipes.testDejaCapitaine(matriculeCap))
+				throw new IFT287Exception("Ce participant est deja capitaine pour une autre équipe.");
+			if (!ligues.existe(nomLigue))
+				throw new IFT287Exception("La ligue " + nomLigue + " n'existe pas.");
+						
+			Participant capitaine = participants.getParticipant(matriculeCap);
+			if(capitaine.getNomEquipe() != null && capitaine.getStatut().equals("ACCEPTE"))
+				throw new IFT287Exception("Le participant ayant le matricule '" + matriculeCap + "' est déjà dans une équipe.");
 
-			// Ajout de l equipe dans la table des equipes
-			equipe.creer(nomEquipe, matriculeCap, nomLigue);
+			// Ajout de l'équipe
+			equipes.creer(nomEquipe, matriculeCap, nomLigue);
 			
 		} catch (Exception e) {
 			throw e;
@@ -55,22 +65,22 @@ public class GestionEquipe {
 
 	/**
 	 * Supprime Equipe de la base de données.
-	 * 
-	 *  @throws IFT287Exception, Exception
+	 * @param nomEquipe
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
 	public void supprime(String nomEquipe) throws IFT287Exception, Exception {
 		try {
-			// Validation
-			Equipe tupleEquipe = equipe.getEquipe(nomEquipe);
-			if (tupleEquipe == null)
-				throw new IFT287Exception("Equipe inexistant: " + nomEquipe);
-			if (!tupleEquipe.isActive())
-				throw new IFT287Exception("Equipe " + nomEquipe + "a encore des participants actifs");
-
+			// Validations
+			Equipe e = equipes.getEquipe(nomEquipe);
+			if (e == null)
+				throw new IFT287Exception("L'équipe '" + nomEquipe + "' n'existe pas.");
+			if (!e.isActive())
+				throw new IFT287Exception("L'équipe '" + nomEquipe + "' a encore des participants actifs");
+			
 			// Suppression de l'equipe.
-			boolean test = equipe.supprimer(nomEquipe);
-			if (test == false)
-				throw new IFT287Exception("Equipe " + nomEquipe + " inexistante");
+			if (equipes.supprimer(nomEquipe))
+				throw new IFT287Exception("Equipe '" + nomEquipe + "' n'existe pas.");
 			
 		} catch (Exception e) {
 			throw e;
@@ -79,22 +89,27 @@ public class GestionEquipe {
 
 	/**
 	 * Change le capitaine de l'equipe.
-	 * 
-	 * @throws IFT287Exception, Exception
+	 * @param nomEquipe
+	 * @param matriculeCap
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
 	public void changerCapitaine(String nomEquipe, String matriculeCap)throws IFT287Exception, Exception {
 		try {
-			// Vérifie si l equipe existe déjà
-			if (!equipe.existe(nomEquipe))
-				throw new IFT287Exception("Equipe " + nomEquipe + " n'existe pas : ");
-			if (!participant.existe(matriculeCap))
-				throw new IFT287Exception("Participant " + matriculeCap + " n'existe pas : ");
-			if (!(participant.getParticipant(matriculeCap).getNomEquipe().equals(nomEquipe) && participant.getParticipant(matriculeCap).getStatut().equals("ACCEPTE")))
-				throw new IFT287Exception("Ce Particpant " + matriculeCap + " ne peut pas devenir captaine de " +nomEquipe+" car il n'est pas dans l'equipe");
-			if ((participant.getParticipant(matriculeCap).getNomEquipe().equals(nomEquipe) && participant.getParticipant(matriculeCap).getStatut().equals("ACCEPTE")))
-				throw new IFT287Exception("Ce Particpant " + matriculeCap + " ne peut pas devenir captaine de " +nomEquipe+" car il n'est pas dans l'equipe");
-
-			equipe.changerCapitaine(nomEquipe, matriculeCap);
+			// Validations
+			if (!equipes.existe(nomEquipe))
+				throw new IFT287Exception("L'équipe '" + nomEquipe + "' n'existe pas.");
+			if (!participants.existe(matriculeCap))
+				throw new IFT287Exception("Le participant ayant le matricule '" + matriculeCap + "' n'existe pas.");
+			
+			Participant capitaine = participants.getParticipant(matriculeCap);
+			
+			if (!(capitaine.getNomEquipe().equals(nomEquipe))
+					|| !capitaine.getStatut().equals("ACCEPTE"))
+				throw new IFT287Exception("Le particpant ayant le matricule '" + matriculeCap + "' ne peut pas devenir captaine de l'équipe '"+ nomEquipe + "', car il n'est pas dans l'equipe.");
+			
+			// changement du capitaine
+			equipes.changerCapitaine(nomEquipe, matriculeCap);
 
 		} catch (Exception e) {
 			throw e;
@@ -103,89 +118,81 @@ public class GestionEquipe {
 
 	/**
 	 * Affichage d'une equipe, de ses participants et de ses resultats
-	 * 
-	 *  @throws IFT287Exception, Exception
+	 * @param nomEquipe
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	/*public void affichageEquipe(String nomEquipe) throws IFT287Exception, Exception {
-		// Validation
+	public void affichageEquipe(String nomEquipe) throws IFT287Exception, Exception {
 		try {
-			Equipe tupleEquipe = equipe.getEquipe(nomEquipe);
-			if (tupleEquipe == null)
-				throw new IFT287Exception("Equipe inexistante: " + nomEquipe);
-
-			tupleEquipe.setListParticipants(participant.lectureParticipants(nomEquipe));
-			tupleEquipe.setListResultats(resultat.lectureResultats(nomEquipe));
-			System.out.println(tupleEquipe.toString());
-
-		} catch (Exception e) {
-			throw e;
-		}
-	}*/
-
-	/**
-	 * Lecture des equipes d'une ligue
-	 * 
-	 * @throws IFT287Exception, Exception
-	 */
-	/*public ArrayList<Equipe> lectureEquipesLigue(String nomLigue) throws IFT287Exception, Exception {
-		// Validation
-		try {
-			Ligue tupleLigue = ligue.getLigue(nomLigue);
-			if (tupleLigue == null)
-				throw new IFT287Exception("Ligue inexistant: " + nomLigue);
-
-			ArrayList<Equipe> listEquipes = equipe.lectureEquipesLigue(nomLigue);
-			return listEquipes;
+			// Validation
+			Equipe e = equipes.getEquipe(nomEquipe);
+			if (e == null)
+				throw new IFT287Exception("L 'équipe '"+nomEquipe+"' n'existe pas.");
 			
-		} catch (Exception e) {
-			throw e;
-		}
-	}*/
-
-	/**
-	 * Affichage de l'ensemble des equipes de la table.
-	 * 
-	 * @throws IFT287Exception, Exception
-	 */
-	/*public void affichageEquipes() throws IFT287Exception, Exception {
-		try {
+			// affichages
+			e.toString();
 			
-			System.out.println("Equipe [");
-			for (Equipe eq : equipe.lectureEquipes()) {
-				System.out.println("nomEquipe=" + eq.getNomEquipe() + ", matriculeCap=" + eq.getMatriculeCap()
-						+ ", nomLigue=" + eq.getNomLigue());
+			List<Participant> joueurs = participants.lectureParticipants(nomEquipe);
+			List<Resultat> scores = resultats.lectureResultats(nomEquipe);
+
+			System.out.println(e.toString());
+			System.out.println("Joueurs : ");
+			for(Participant p : joueurs) {
+				p.toString();
 			}
-			System.out.println("]");
+			System.out.println("Résultats : ");
+			for(Resultat r : scores) {
+				r.toString();
+			}
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	/**
+	 * Affichage de l'ensemble des equipes
+	 * @throws IFT287Exception
+	 * @throws Exception
+	 */
+	public void affichageEquipes() throws IFT287Exception, Exception {
+		try {
+			
+			List<Equipe> eqs = equipes.lectureEquipes();
+			System.out.println("\nToutes les équipes ("+ eqs.size() +") : ");
+			
+			for (Equipe e : eqs) {
+				e.toString();
+			}
 			
 		} catch (Exception e) {
 			throw e;
 		}
-	}*/
+	}
 	
 	/**
 	 * Affichage de l'ensemble des equipes d'une ligue ainsi que le nombre de matchs gagnés, perdus et nulls.
-	 * 
 	 * @throws IFT287Exception, Exception
 	 */
-	/*public void afficherEquipesLigue(String nomLigue) throws IFT287Exception, Exception {
+	public void afficherEquipesLigue(String nomLigue) throws IFT287Exception, Exception {
 		try {
 			// Validation
-			Ligue tupleLigue = ligue.getLigue(nomLigue);
-			if (tupleLigue == null)
-				throw new IFT287Exception("Ligue inexistante: " + nomLigue);
+			Ligue l = ligues.getLigue(nomLigue);
+			if (l == null)
+				throw new IFT287Exception("La ligue '" + nomLigue + "' est inexistante.");
 			
-			// Affichage
-			System.out.println("\nLigue " + nomLigue + "(nombre max de joueurs=" + ligue.getLigue(nomLigue).getNbJoueurMaxParEquipe() + ") :");
-			for (Equipe eq : equipe.lectureEquipesLigue(nomLigue)) {
+			// Affichages
+			System.out.println("\nLigue " + nomLigue + "(nombre max de joueurs=" + ligues.getLigue(nomLigue).getNbJoueurMaxParEquipe() + ") :");
+			for (Equipe eq : equipes.lectureEquipesLigue(nomLigue)) {
 				System.out.println("nomEquipe=" + eq.getNomEquipe() + ", matriculeCap=" + eq.getMatriculeCap()
-						+ ", nombreDeMatchsGagnés=" + resultat.ObtenirNbMGagne(eq.getNomEquipe())
-						+ ", nombreDeMatchsPerdus=" + resultat.ObtenirNbMPerdu(eq.getNomEquipe())
-						+ ", nombreDeMatchsNulls=" + resultat.ObtenirNbMNul(eq.getNomEquipe())
+						+ ", nombreDeMatchsGagnés=" + resultats.ObtenirNbMGagne(eq.getNomEquipe())
+						+ ", nombreDeMatchsPerdus=" + resultats.ObtenirNbMPerdu(eq.getNomEquipe())
+						+ ", nombreDeMatchsNulls=" + resultats.ObtenirNbMNul(eq.getNomEquipe())
 						);
 			}
 		} catch (Exception e) {
 			throw e;
 		}
-	}*/
+	}
 
 }

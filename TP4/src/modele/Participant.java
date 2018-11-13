@@ -135,7 +135,7 @@ public class Participant {
 	
 	@Override
 	public String toString() {
-		return "\nParticipant [matricule=" + matricule + ", prenom=" + prenom + ", nom=" + nom + ", motDePasse="
+		return prenom + " " + nom + "("+ matricule + ")" + " [mot de passe ="
 				+ motDePasse + " statut=" + statut + "]";
 	}
 	
