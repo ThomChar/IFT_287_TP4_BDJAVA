@@ -18,7 +18,7 @@ public class Ligues {
 	 */
 	public Ligues(Connexion cx) {
 		this.cx = cx;
-		liguesCollection = cx.getDatabase().getCollection("Ligues");
+		this.liguesCollection = cx.getDatabase().getCollection("Ligues");
 	}
 
 	/**
