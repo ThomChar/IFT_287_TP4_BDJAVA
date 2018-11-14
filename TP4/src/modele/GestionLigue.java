@@ -27,7 +27,7 @@ public class GestionLigue {
      * @throws IFT287Exception
      * @throws Exception
      */	
-    public void ajouterLigueEmpty(String nomLigue, int nbJoueurMaxParEquipe) throws IFT287Exception, Exception
+    public void ajouterLigue(String nomLigue, int nbJoueurMaxParEquipe) throws IFT287Exception, Exception
     {
         try
         {

@@ -5,8 +5,6 @@ import org.bson.Document;
 public class Resultat {
 	
 	//Attributes
-	//private Equipe equipeA;
-	//private Equipe equipeB;
 	private String nomEquipeA;
 	private String nomEquipeB;
 	private int scoreEquipeA;
@@ -47,21 +45,7 @@ public class Resultat {
 	
 	/**
 	 * Les getteurs et setters
-	 */
-	/*public Equipe getEquipeA() {
-		return equipeA;
-	}
-	
-	public void setEquipeA(Equipe equipeA) {
-		this.equipeA = equipeA;
-	}
-	public Equipe getEquipeB() {
-		return equipeB;
-	}
-	public void setEquipeB(Equipe equipeB) {
-		this.equipeB = equipeB;
-	}*/
-	
+	 */	
 	public String getNomEquipeA() {
 		return nomEquipeA;
 	}
@@ -93,7 +77,8 @@ public class Resultat {
 
 	@Override
 	public String toString() {
-		return nomEquipeA + " - " + nomEquipeB + " : " + scoreEquipeA + " - " + scoreEquipeB;
+		return "\nResultat [nomEquipeA=" + nomEquipeA + ", nomEquipeB=" + nomEquipeB + ", scoreEquipeA=" + scoreEquipeA
+				+ ", scoreEquipeB=" + scoreEquipeB + "]";
 	}
 	
 	public Document toDocument()

@@ -10,7 +10,6 @@ public class Participant {
 	private String nom;
 	private String motDePasse;
 	private String statut;
-	//private Equipe equipe;
 	private String nomEquipe;
 	
 	/**
@@ -45,7 +44,6 @@ public class Participant {
 		this.prenom = prenom;
 		this.nom = nom;
 		this.motDePasse = motDePasse;
-		//this.equipe = null;
 		this.setNomEquipe(null);
 		this.statut = null;
 	}
@@ -56,7 +54,7 @@ public class Participant {
 	 * @param prenom
 	 * @param nom
 	 * @param motDePasse
-	 * @param equipe
+	 * @param nomEquipe
 	 */
 	public Participant(String matricule, String prenom, String nom, String motDePasse, String nomEquipe) {
 		this.matricule = matricule;
@@ -96,14 +94,6 @@ public class Participant {
 		this.motDePasse = motDePasse;
 	}
 	
-	/*public Equipe getEquipe() {
-		return equipe;
-	}
-
-	public void setEquipe(Equipe equipe) {
-		this.equipe = equipe;
-	}*/
-	
 	public String getStatut() {
 		return statut;
 	}
@@ -112,7 +102,6 @@ public class Participant {
 		this.statut = statut;
 	}
 	
-
 	public String getNomEquipe() {
 		return nomEquipe;
 	}

@@ -1,324 +1,327 @@
 package modele;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 import CentreSportif.IFT287Exception;
-import CentreSportif.Connexion;
 
 public class GestionParticipant {
 
-	private TableParticipants participant;
-	private TableEquipes equipe;
-	private TableLigues ligue;
-	private Connexion cx;
+	private Participants participants;
+	private Equipes equipes;
+	private Ligues ligues;
 
 	/**
 	 * Creation d'une instance
-	 * 
+	 * @param equipes
+	 * @param participants
+	 * @param ligues
+	 * @throws IFT287Exception
 	 */
-	public GestionParticipant(TableParticipants participant , TableEquipes equipe, TableLigues ligue) throws IFT287Exception {
-		this.cx = participant.getConnexion();
-
-		if (participant.getConnexion() != equipe.getConnexion() && participant.getConnexion() != ligue.getConnexion())
+	public GestionParticipant(Participants participants, Equipes equipes, Ligues ligues) throws IFT287Exception {
+		if (participants.getConnexion() != equipes.getConnexion() && participants.getConnexion() != ligues.getConnexion())
 			throw new IFT287Exception(
 					"Les instances de participant, ligue et de equipe n'utilisent pas la même connexion au serveur");
 
-		this.participant = participant;
-		this.equipe = equipe;
-		this.ligue = ligue;
+		this.participants = participants;
+		this.equipes = equipes;
+		this.ligues = ligues;
 	}
 
 	/**
-	 * Ajout d'un nouveau particpant dans la base de données. S'il existe déjà , une
-	 * exception est levée.
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
+	 * Ajout d'un nouveau particpant
+	 * @param matricule
+	 * @param prenom
+	 * @param nom
+	 * @param motDePasse
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	public void ajouter(String matricule, String prenom, String nom, String motDePasse, String nomEquipe, String statut)
-			throws SQLException, IFT287Exception, Exception {
+	public void ajouter(String matricule, String prenom, String nom, String motDePasse) throws IFT287Exception, Exception {
 		try {
-			
-			// Vérifie si le participant existe déjà
-			if (participant.existe(matricule))
+			// Vérification
+			if (participants.existe(matricule))
 				throw new IFT287Exception("Particpant existe déjà : " + matricule);
-			// Ajout du participant dans la table des participants
-			participant.ajouter(matricule, prenom, nom, motDePasse, nomEquipe, statut);
 			
-			// Commit
-			cx.commit();
+			// Ajout du participant
+			participants.ajouter(matricule, prenom, nom, motDePasse);
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
 
 	/**
-	 * Modifier nom et prenom d'un participant dans la base de données. S'il existe
-	 * déjà , une exception est levée.
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
+	 * Modifier le nom et le prénom d'un participant
+	 * @param matricule
+	 * @param prenom
+	 * @param nom
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	public void modifierNomPrenom(String matricule, String prenom, String nom)
-			throws SQLException, IFT287Exception, Exception {
+	public void modifierNomPrenom(String matricule, String prenom, String nom) throws IFT287Exception, Exception {
 		try {
-			// Vérifie si le nouveau nom et prenom existe déjà pour un autre participant
-			if (participant.existePrenom(prenom))
-				throw new IFT287Exception("Un participant avec le prenom : " + prenom + "existe déjà");
-			if (participant.existeNom(prenom))
-				throw new IFT287Exception("Un participant avec le nom : " + nom + "existe déjà");
-
-			// modification du participant dans la table des participants
-			participant.modifierNomPrenom(matricule, prenom, nom);
-
-			// Commit
-			cx.commit();
-		} catch (Exception e) {
-			cx.rollback();
-			throw e;
-		}
-	}
-
-	/**
-	 * Modifier mot de passe d'un participant dans la base de données. S'il existe
-	 * déjà , une exception est levée.
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
-	 */
-	public void modifierMotDePasse(String matricule, String motDePasse)
-			throws SQLException, IFT287Exception, Exception {
-		
-		try {
-			// modification du participant dans la table des participant
-			participant.modifierMotDePasse(matricule, motDePasse);
-
-			// Commit
-			cx.commit();
-		} catch (Exception e) {
-			cx.rollback();
-			throw e;
-		}
-	}
-
-	/**
-	 * Ajouter un participant dans une equipe du point de vu participant. S'il
-	 * n'existe pas , une exception est levée.
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
-	 */
-	public void ajouteParEquipe(String nomEquipe, String matricule) throws SQLException, IFT287Exception, Exception {
-		try {
+			// Vérification
+			if (!participants.existe(matricule))
+				throw new IFT287Exception("Le particpant n'existe pas pour le matricule : " + matricule+".");
 			
-			// Vérifie si le participant existe
-			if (!participant.existe(matricule))
+			// modifications
+			participants.modifierNomPrenom(matricule, prenom, nom);
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	/**
+	 * Modifier le mot de passe d'un participant
+	 * @param matricule
+	 * @param motDePasse
+	 * @param secondMotDePasse
+	 * @throws IFT287Exception
+	 * @throws Exception
+	 */
+	public void modifierMotDePasse(String matricule, String motDePasse, String secondMotDePasse) throws IFT287Exception, Exception {
+		try {
+			// Vérifications
+			if (!participants.existe(matricule))
+				throw new IFT287Exception("Le particpant n'existe pas pour le matricule : " + matricule);
+			if (!motDePasse.equals(secondMotDePasse))
+				throw new IFT287Exception("Le mot de passe n'a pas été modifié. Les deux mots de passes ne sont pas identiques !");
+						
+			// modification
+			participants.modifierMotDePasse(matricule, motDePasse);
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	/**
+	 * Ajouter un participant dans une équipe (Le joueur postule, mais à besoin d'une approbation)
+	 * @param nomEquipe
+	 * @param matricule
+	 * @throws IFT287Exception
+	 * @throws Exception
+	 */
+	public void postulerAUneEquipe(String nomEquipe, String matricule) throws IFT287Exception, Exception {
+		try {
+			// Vérifications
+			if (!participants.existe(matricule))
 				throw new IFT287Exception("Participant "+matricule+" n'existe pas");
-			if (!equipe.existe(nomEquipe))
+			if (!equipes.existe(nomEquipe))
 				throw new IFT287Exception("L'equipe selectionnée " + nomEquipe + " est introuvable");
-			if (participant.getParticipant(matricule).getStatut().equals("EN ATTENTE")
-					&& !participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant selectionné postule déjà pour une autre équipe : "
-						+ participant.getParticipant(matricule).getNomEquipe());
-			if (participant.getParticipant(matricule).getStatut().equals("ACCEPTE")
-					&& !participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant selectionné est déjà dans une autre équipe : "
-						+ participant.getParticipant(matricule).getNomEquipe());
-			if (participant.getParticipant(matricule).getStatut().equals("ACCEPTE")
-					&& participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant selectionné est déjà dans cette equipe");
-			if (participant.getParticipant(matricule).getStatut().equals("EN ATTENTE")
-					&& participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant postule déjà pour cette equipe");
+			
+			Participant p = participants.getParticipant(matricule);
+			
+			// vérifier que le joueur n'est pas déjà dans une équipe
+			if(p.getNomEquipe() != null)
+			{
+				if (p.getStatut().equals("EN ATTENTE")
+						&& !p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("Le Participant selectionné postule déjà pour une autre équipe : " + p.getNomEquipe());
+				if (p.getStatut().equals("ACCEPTE")
+						&& !p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("Le Participant selectionné est déjà dans une autre équipe : " + p.getNomEquipe());
+				if (p.getStatut().equals("ACCEPTE")
+						&& p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("Le Participant selectionné est déjà dans cette equipe");
+				if (participants.getParticipant(matricule).getStatut().equals("EN ATTENTE")
+						&& p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("Le Participant postule déjà pour cette equipe");
+			}
 
-			participant.ajouteParEquipe(nomEquipe, matricule);
-
-			// Commit
-			cx.commit();
+			participants.ajouteParEquipe(nomEquipe, matricule);
+			
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
 
 	/**
-	 * Accepter un participant dans une equipe du point de vu participant. S'il
-	 * n'existe pas , une exception est levée.
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
+	 * Accepter un participant dans une équipe
+	 * @param nomEquipe
+	 * @param matricule
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	public void accepteParEquipe(String nomEquipe, String matricule) throws SQLException, IFT287Exception, Exception {
+	public void accepteParEquipe(String nomEquipe, String matricule) throws IFT287Exception, Exception {
 		try {
-			// Vérifie si le participant existe
-			if (!participant.existe(matricule))
-				throw new IFT287Exception("Particpant"+matricule+ "n'existe pas");
-			if (!equipe.existe(nomEquipe))
-				throw new IFT287Exception("L'equipe selectionnée " + nomEquipe + " est introuvable");
-			// vérification du nombre de joueurs max de l'équipe
-			Ligue l = ligue.getLigue(equipe.getEquipe(nomEquipe).getNomLigue());
-			if(participant.nombreMembresEquipe(nomEquipe) >= l.getNbJoueurMaxParEquipe())
-				throw new IFT287Exception("Impossible d'ajouter un nouveau jour dans l'équipe : " + nomEquipe + ", puisque nombre de joueurs max dépassé.");
-			if (participant.getParticipant(matricule).getStatut().equals("EN ATTENTE")
-					&& !participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant selectionné postule déjà pour une autre équipe : "
-						+ participant.getParticipant(matricule).getNomEquipe());
-			if (participant.getParticipant(matricule).getStatut().equals("ACCEPTE")
-					&& !participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant selectionné est déjà dans une autre équipe : "
-						+ participant.getParticipant(matricule).getNomEquipe());
-			if (participant.getParticipant(matricule).getStatut().equals("ACCEPTE")
-					&& participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant selectionné est déjà dans votre equipe");
-			participant.accepteParEquipe(nomEquipe, matricule);
+			// Vérifications
+			if (!participants.existe(matricule))
+				throw new IFT287Exception("Le participant ayant le matricule '"+matricule+"' n'existe pas");
+			if (!equipes.existe(nomEquipe))
+				throw new IFT287Exception("L'equipe selectionnée '" + nomEquipe + "' est introuvable");
+			
+			Participant p = participants.getParticipant(matricule);
+			Equipe e = equipes.getEquipe(nomEquipe);
+			Ligue l = ligues.getLigue(e.getNomLigue());
+			
+			if(e.getNbParticipants() >= l.getNbJoueurMaxParEquipe())
+				throw new IFT287Exception("Impossible d'ajouter un nouveau joueur dans l'équipe : " + nomEquipe + ", puisque nombre de joueurs max dépassé.");
+			if(p.getNomEquipe() != null)
+			{
+				if (p.getStatut().equals("EN ATTENTE")
+						&& !p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("Le Participant selectionné postule pour une autre équipe : " + p.getNomEquipe());
+				if (p.getStatut().equals("ACCEPTE")
+						&& !p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("Le Participant selectionné est déjà dans une autre équipe : "+ p.getNomEquipe());
+				if (p.getStatut().equals("ACCEPTE")
+						&& p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("Le Participant selectionné est déjà dans l'equipe");
+				if (p.getStatut().equals("REFUSE")
+						&& p.getNomEquipe().equals(nomEquipe))
+					throw new IFT287Exception("le joueur a été refusé utérieurement, pour l'accepter, il faut qu'il repostule à nouveau.");
+			}
+			if(!p.getStatut().equals("EN ATTENTE"))
+				throw new IFT287Exception("Le joueur ayant le matricule " + matricule + " n'a pas postulé pour une équipe.");
+						
+			participants.accepteParEquipe(matricule);
 
-			// Commit
-			cx.commit();
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
 
 	/**
-	 * Refuse un participant dans une equipe du point de vu participant. S'il
-	 * n'existe pas , une exception est levée.
+	 * Refuser un participant dans une équipe
+	 * @param nomEquipe
+	 * @param matricule
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	public void refuseParEquipe(String nomEquipe, String matricule) throws SQLException, IFT287Exception, Exception {
+	public void refuseParEquipe(String nomEquipe, String matricule) throws IFT287Exception, Exception {
 		try {
-			// Vérifie si le participant existe
-			if (!participant.existe(matricule))
+			// Vérifications
+			if (!participants.existe(matricule))
 				throw new IFT287Exception("Particpant n'existe pas : " + matricule);
-			if (!equipe.existe(nomEquipe))
+			if (!equipes.existe(nomEquipe))
 				throw new IFT287Exception("L'equipe selectionnée " + nomEquipe + " est introuvable");
-			if (participant.getParticipant(matricule).getStatut().equals("EN ATTENTE")
-					&& !participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
-				throw new IFT287Exception("Le Participant selectionné est déjà dans une autre équipe : "
-						+ participant.getParticipant(matricule).getNomEquipe());
-			if (participant.getParticipant(matricule).getStatut().equals("REFUSE")
-					&& participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
+			
+			Participant p = participants.getParticipant(matricule);
+			
+			if (p.getStatut().equals("EN ATTENTE")
+					&& !p.getNomEquipe().equals(nomEquipe))
+				throw new IFT287Exception("Le Participant selectionné est en attente pour une autre équipe : "+ p.getNomEquipe());
+			if (p.getStatut().equals("REFUSE")
+					&& p.getNomEquipe().equals(nomEquipe))
 				throw new IFT287Exception("Le Participant selectionné a deja refuse pour cette equipe");
+			if(!p.getStatut().equals("EN ATTENTE"))
+				throw new IFT287Exception("Le joueur ayant le matricule " + matricule + " n'a pas fait de demande d'adhésion.");
 
-			participant.refuseParEquipe(nomEquipe, matricule);
+			participants.refuseParEquipe(matricule);
 
-			// Commit
-			cx.commit();
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
 
 	/**
-	 * Supprimer un participant dans une equipe du point de vu participant. S'il
-	 * n'existe pas , une exception est levée.
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
+	 * Supprimer un participant d'une équipe (le retirer de la liste des participants de l'équipe)
+	 * @param nomEquipe
+	 * @param matricule
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	public void supprimeParEquipe(String nomEquipe, String matricule) throws SQLException, IFT287Exception, Exception {
+	public void supprimeParEquipe(String nomEquipe, String matricule) throws IFT287Exception, Exception {
 		try {
 			// Vérifie si le participant existe
-			if (!participant.existe(matricule))
+			if (!participants.existe(matricule))
 				throw new IFT287Exception("Participant n'existe pas : " + matricule);
-			if (!equipe.existe(nomEquipe))
+			if (!equipes.existe(nomEquipe))
 				throw new IFT287Exception("L'equipe selectionnée " + nomEquipe + " est introuvable");
-			if (participant.getParticipant(matricule).getStatut().equals("EN ATTENTE")
-					&& !participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
+			if (participants.getParticipant(matricule).getStatut().equals("EN ATTENTE")
+					&& !participants.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
 				throw new IFT287Exception("Le Participant selectionné postule déjà pour une autre équipe : "
-						+ participant.getParticipant(matricule).getNomEquipe());
-			if (participant.getParticipant(matricule).getStatut().equals("EN ATTENTE")
-					&& participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
+						+ participants.getParticipant(matricule).getNomEquipe());
+			if (participants.getParticipant(matricule).getStatut().equals("EN ATTENTE")
+					&& participants.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
 				throw new IFT287Exception(
 						"Le Participant selectionné postule pour cette equipe, il ne peut pas être supprimé mais peut être refusé");
-			if (participant.getParticipant(matricule).getStatut().equals("ACCEPTE")
-					&& !participant.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
+			if (participants.getParticipant(matricule).getStatut().equals("ACCEPTE")
+					&& !participants.getParticipant(matricule).getNomEquipe().equals(nomEquipe))
 				throw new IFT287Exception("Le Participant selectionné est dans une autre equipe");
 			
-			Equipe tupleEquipe = equipe.getEquipe(nomEquipe);
+			Equipe tupleEquipe = equipes.getEquipe(nomEquipe);
 			if(tupleEquipe.getMatriculeCap().equals(matricule)) {
-				equipe.changerCapitaine(nomEquipe, null);
+				equipes.changerCapitaine(nomEquipe, null);
 			}
-			participant.supprimeParEquipe(nomEquipe, matricule);
+			participants.supprimeParEquipe(matricule);
 
-			// Commit
-			cx.commit();
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
 
 	/**
-	 * Supprime Participant de la base de donnée.
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
+	 * Supprimer un participant
+	 * @param matricule
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	public void supprime(String matricule) throws SQLException, IFT287Exception, Exception {
+	public void supprimer(String matricule) throws IFT287Exception, Exception {
 		try {
-			
 			// Validation
-			Participant tupleParticipant = participant.getParticipant(matricule);
-			if (tupleParticipant == null)
+			Participant p = participants.getParticipant(matricule);
+			if (p == null)
 				throw new IFT287Exception("Particpant inexistant: " + matricule);
-			if (tupleParticipant.isActive())
+			if (p.isActive())
 				throw new IFT287Exception("Particpant " + matricule + " est dans equipe "
-						+ tupleParticipant.getNomEquipe() + "et ne peut pas être supprimer");
+						+ p.getNomEquipe() + "et ne peut pas être supprimer");
 
 			// Suppression du participant.
-			int nb = participant.supprimer(matricule);
-			if (nb == 0)
+			if (participants.supprimer(matricule))
 				throw new IFT287Exception("Particpant " + matricule + " inexistant");
 
-			// Commit
-			cx.commit();
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
 
 	/**
 	 * Lecture des participants d'une équipe
+	 * @param nomEquipe
+	 * @return liste de participants
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
 	public ArrayList<Participant> lectureParticipants(String nomEquipe)
-			throws SQLException, IFT287Exception, Exception {
+			throws IFT287Exception, Exception {
 		// Validation
 		try {
-			Equipe tupleEquipe = equipe.getEquipe(nomEquipe);
+			// Validation
+			Equipe tupleEquipe = equipes.getEquipe(nomEquipe);
 			if (tupleEquipe == null)
 				throw new IFT287Exception("Equipe inexistant: " + nomEquipe);
 			if (!tupleEquipe.isActive())
 				throw new IFT287Exception("Equipe " + nomEquipe + "a encore des participants actifs");
 
-			ArrayList<Participant> listeParticipant = participant.lectureParticipants(nomEquipe);
+			ArrayList<Participant> listeParticipant = participants.lectureParticipants(nomEquipe);
 
-			// Commit
-			cx.commit();
 			return listeParticipant;
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
 
 	/**
-	 * Lecture des participants d'une équipe
-	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
+	 * Affichage des participants d'une équipe
+	 * @param nomEquipe
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
-	public void affichageParticipants(String nomEquipe) throws SQLException, IFT287Exception, Exception {
-		// Validation
+	public void affichageParticipants(String nomEquipe) throws IFT287Exception, Exception {
 		try {
-			Equipe tupleEquipe = equipe.getEquipe(nomEquipe);
+			// Validation
+			Equipe tupleEquipe = equipes.getEquipe(nomEquipe);
 			if (tupleEquipe == null)
 				throw new IFT287Exception("Equipe inexistant: " + nomEquipe);
 			if (!tupleEquipe.isActive())
 				throw new IFT287Exception("Equipe " + nomEquipe + "a encore des participants actifs");
 
 			@SuppressWarnings("unused")
-			ArrayList<Participant> listeParticipant = participant.lectureParticipants(nomEquipe);
+			ArrayList<Participant> listeParticipant = participants.lectureParticipants(nomEquipe);
 
-			// Commit
-			cx.commit();
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
@@ -326,16 +329,14 @@ public class GestionParticipant {
 	/**
 	 * Affichage de l'ensemble des participants de la table.
 	 * 
-	 *  @throws SQLException, IFT287Exception, Exception
+	 *  @throws IFT287Exception, Exception
 	 */
-	public void affichageParticipants() throws SQLException, IFT287Exception, Exception {
+	public void affichageParticipants() throws IFT287Exception, Exception {
 		try {
-			participant.afficherParticipant();
+			@SuppressWarnings("unused")
+			ArrayList<Participant> listeParticipant = participants.lectureParticipants();
 
-			// Commit
-			cx.commit();
 		} catch (Exception e) {
-			cx.rollback();
 			throw e;
 		}
 	}
