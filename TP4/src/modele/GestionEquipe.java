@@ -57,6 +57,7 @@ public class GestionEquipe {
 
 			// Ajout de l'équipe
 			equipes.creer(nomEquipe, matriculeCap, nomLigue);
+			ligues.ajouterEquipe(nomLigue);
 			
 		} catch (Exception e) {
 			throw e;
@@ -81,6 +82,7 @@ public class GestionEquipe {
 			// Suppression de l'equipe.
 			if (equipes.supprimer(nomEquipe))
 				throw new IFT287Exception("Equipe '" + nomEquipe + "' n'existe pas.");
+			ligues.supprimerEquipe(e.getNomLigue());
 			
 		} catch (Exception e) {
 			throw e;
@@ -127,7 +129,7 @@ public class GestionEquipe {
 			// Validation
 			Equipe e = equipes.getEquipe(nomEquipe);
 			if (e == null)
-				throw new IFT287Exception("L 'équipe '"+nomEquipe+"' n'existe pas.");
+				throw new IFT287Exception("L'équipe '"+nomEquipe+"' n'existe pas.");
 			
 			// affichages
 			e.toString();
@@ -194,5 +196,4 @@ public class GestionEquipe {
 			throw e;
 		}
 	}
-
 }

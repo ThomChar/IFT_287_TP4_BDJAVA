@@ -138,7 +138,7 @@ public class Equipe {
 	public String toString() {
 		return "Equipe '"+ nomEquipe + "' (matriculeCap=" + matriculeCap + ", nomLigue=" + nomLigue +")";
 	}
-
+	 
 	public Document toDocument()
 	{
 	    return new Document().append("nomLigue", nomLigue)

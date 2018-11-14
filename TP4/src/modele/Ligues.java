@@ -23,20 +23,25 @@ public class Ligues {
 
 	/**
 	 * Retourner la connexion associee.
+	 * @return Connexion
 	 */
 	public Connexion getConnexion() {
 		return cx;
 	}
 
 	/**
-	 * Verifie si une ligue existe.
-	 */
+     * Verifie si une ligue existe.
+     * @param nomLigue
+     * @return vrai ou faux
+     */
 	public boolean existe(String nomLigue) {
 		return liguesCollection.find(eq("nomLigue", nomLigue)).first() != null;
 	}
 
 	/**
 	 * Lecture d'une ligue.
+	 * @param nomLigue
+	 * @return objet ligue
 	 */
 	public Ligue getLigue(String nomLigue) {
 		Document l = liguesCollection.find(eq("nomLigue", nomLigue)).first();
@@ -47,7 +52,9 @@ public class Ligues {
 	}
 
 	/**
-	 * Ajout d'une nouvelle ligue dans la base de donnees.
+	 * Ajout d'une nouvelle ligue
+	 * @param nomLigue
+	 * @param nbJoueurMaxParEquipe
 	 */
 	public void creer(String nomLigue, int nbJoueurMaxParEquipe) {
 		Ligue l = new Ligue(nomLigue, nbJoueurMaxParEquipe);
@@ -57,67 +64,36 @@ public class Ligues {
 	}
 
 	/**
-	 * Ajout d'une nouvelle ligue (vide).
-	 * 
-	 * @throws IFT287Exception
-	 */
-	/*
-	 * public void creation(String nomLigue, int nbJoueurMaxParEquipe,
-	 * ArrayList<Equipe> listEquipes) throws SQLException, IFT287Exception {
-	 * stmtInsert.setString(1, nomLigue); stmtInsert.setInt(2,
-	 * nbJoueurMaxParEquipe); stmtInsert.setArray(3, (Array) listEquipes);
-	 * stmtInsert.executeUpdate(); }
-	 */
-
-	/**
 	 * Modifier le nombre de Joueur max par equipe pour une ligue.
-	 * 
-	 * @throws IFT287Exception
+	 * @param nomLigue
+	 * @param nbJoueurMaxParEquipe
 	 */
-	
 	 public void modifierNbJoueursMaxParEquipe(String nomLigue, int nbJoueurMaxParEquipe) {
-	  liguesCollection.updateOne(eq("nomLigue", nomLigue), set("nbJoueurMaxParEquipe", nbJoueurMaxParEquipe)); 
+		 liguesCollection.updateOne(eq("nomLigue", nomLigue), set("nbJoueurMaxParEquipe", nbJoueurMaxParEquipe)); 
 	 }
-	 
 
-	/**
-	 * Modifier le contenu de la liste des equipe pour une ligue.
-	 * 
-	 * @throws IFT287Exception
-	 */
-	/*
-	 * public void modifierListEquipes(String nomLigue, ArrayList<Equipe>
-	 * listEquipes) throws SQLException, IFT287Exception {
-	 * stmtUpdateListEquipes.setArray(1, (Array)listEquipes);
-	 * stmtUpdateListEquipes.setString(2, nomLigue);
-	 * stmtUpdateListEquipes.executeUpdate(); }
-	 */
-
-	/**
-	 * Suppression d'une ligue. regarder si ligue n'est pas active avant de
-	 * supprimer
-	 * 
-	 */
+	 /**
+	  * Suppression d'une ligue
+	  * @param nomLigue
+	  * @return boolean
+	  */
 	public boolean supprimer(String nomLigue) {
 		return liguesCollection.deleteOne(eq("nomLigue", nomLigue)).getDeletedCount() > 0;
 	}
 
+	/**
+	 * Ajouter une équipe dans la ligue
+	 * @param nomLigue
+	 */
 	public void ajouterEquipe(String nomLigue) {
 		liguesCollection.updateOne(eq("nomLigue", nomLigue), inc("nbEquipes", 1));
 	}
-
+	
+	/**
+	 * Supprimer une équipe dans la ligue
+	 * @param nomLigue
+	 */
 	public void supprimerEquipe(String nomLigue) {
 		liguesCollection.updateOne(eq("nomLigue", nomLigue), inc("nbEquipes", -1));
 	}
-
-	/**
-	 * Afficher toutes les equipes d'une ligue.
-	 * 
-	 * @throws IFT287Exception
-	 */
-	/*public void afficher(String nomLigue) throws SQLException, IFT287Exception {
-
-		stmtUpdateListEquipes.setString(1, nomLigue);
-		stmtUpdateListEquipes.executeUpdate();
-	}*/
 }
