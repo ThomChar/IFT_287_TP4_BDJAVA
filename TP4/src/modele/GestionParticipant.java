@@ -156,7 +156,7 @@ public class GestionParticipant {
 			Ligue l = ligues.getLigue(e.getNomLigue());
 			
 			if(e.getNbParticipants() >= l.getNbJoueurMaxParEquipe())
-				throw new IFT287Exception("Impossible d'ajouter un nouveau joueur dans l'équipe : " + nomEquipe + ", puisque nombre de joueurs max dépassé.");
+				throw new IFT287Exception("Impossible d'ajouter un nouveau joueur dans l'équipe : " + nomEquipe + ", puisque nombre de joueurs max de l'équipe est dépassé.");
 			if(p.getNomEquipe() != null)
 			{
 				if (p.getStatut().equals("EN ATTENTE")
@@ -174,8 +174,9 @@ public class GestionParticipant {
 			}
 			if(!p.getStatut().equals("EN ATTENTE"))
 				throw new IFT287Exception("Le joueur ayant le matricule " + matricule + " n'a pas postulé pour une équipe.");
-						
+			
 			participants.accepteParEquipe(matricule);
+			equipes.ajouterJoueur(nomEquipe);
 
 		} catch (Exception e) {
 			throw e;
@@ -246,6 +247,7 @@ public class GestionParticipant {
 				equipes.changerCapitaine(nomEquipe, null);
 			}
 			participants.supprimeParEquipe(matricule);
+			equipes.supprimerJoueur(nomEquipe);
 
 		} catch (Exception e) {
 			throw e;
@@ -269,7 +271,7 @@ public class GestionParticipant {
 						+ p.getNomEquipe() + "et ne peut pas être supprimer");
 
 			// Suppression du participant.
-			if (participants.supprimer(matricule))
+			if (!participants.supprimer(matricule))
 				throw new IFT287Exception("Particpant " + matricule + " inexistant");
 
 		} catch (Exception e) {
@@ -318,9 +320,12 @@ public class GestionParticipant {
 			if (!tupleEquipe.isActive())
 				throw new IFT287Exception("Equipe " + nomEquipe + "a encore des participants actifs");
 
-			@SuppressWarnings("unused")
 			ArrayList<Participant> listeParticipant = participants.lectureParticipants(nomEquipe);
-
+			
+			System.out.println("\nLes participants de l'équipe "+nomEquipe+" :");
+			for (Participant p : listeParticipant) {
+				System.out.println(p.toString());
+			}
 		} catch (Exception e) {
 			throw e;
 		}
@@ -333,9 +338,12 @@ public class GestionParticipant {
 	 */
 	public void affichageParticipants() throws IFT287Exception, Exception {
 		try {
-			@SuppressWarnings("unused")
 			ArrayList<Participant> listeParticipant = participants.lectureParticipants();
-
+			
+			System.out.println("\nLes participants :");
+			for (Participant p : listeParticipant) {
+				System.out.println(p.toString());
+			}
 		} catch (Exception e) {
 			throw e;
 		}

@@ -151,7 +151,7 @@ public class Participants {
     {
     	ArrayList<Participant> listParticipants = new ArrayList<Participant>();
 		
-		MongoCursor<Document> parts = participantsCollection.find().sort(ascending("nom")).iterator();
+		MongoCursor<Document> parts = participantsCollection.find(eq("statut", "ACCEPTE")).sort(ascending("nom")).iterator();
 		while (parts.hasNext()) {
 			listParticipants.add(new Participant(parts.next()));
 		}
@@ -167,7 +167,7 @@ public class Participants {
 	public ArrayList<Participant> lectureParticipants(String nomEquipe) {
 		ArrayList<Participant> listParticipants = new ArrayList<Participant>();
 		
-		MongoCursor<Document> parts = participantsCollection.find(eq("nomEquipe", nomEquipe)).sort(ascending("nom")).iterator();
+		MongoCursor<Document> parts = participantsCollection.find(and(eq("nomEquipe", nomEquipe),eq("statut", "ACCEPTE"))).sort(ascending("nom")).iterator();
 		while (parts.hasNext()) {
 			listParticipants.add(new Participant(parts.next()));
 		}

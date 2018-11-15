@@ -49,7 +49,7 @@ public class Equipe {
 	 */
 	public Equipe(String nomLigue, String nomEquipe, String matriculeCap) {
 		this.nomEquipe = nomEquipe;
-		this.nbParticipants = 1;
+		this.nbParticipants = 0;
 		this.matriculeCap = matriculeCap;
 		this.nomLigue = nomLigue;
 		this.nbResultats = 0;
@@ -136,7 +136,7 @@ public class Equipe {
 	
 	 @Override
 	public String toString() {
-		return "Equipe '"+ nomEquipe + "' (matriculeCap=" + matriculeCap + ", nomLigue=" + nomLigue +")";
+		return "Equipe "+ nomEquipe + " (matriculeCap=" + matriculeCap + ", nomLigue=" + nomLigue +")";
 	}
 	 
 	public Document toDocument()

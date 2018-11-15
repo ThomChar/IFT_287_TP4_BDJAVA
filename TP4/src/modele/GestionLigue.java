@@ -93,7 +93,7 @@ public class GestionLigue {
             	throw new IFT287Exception("La ligue '" + nomLigue + "' inexistante");
             
             // Suppression de la ligue.
-            if (ligues.supprimer(nomLigue))
+            if (!ligues.supprimer(nomLigue))
                 throw new IFT287Exception("La ligue '" + nomLigue + "' inexistante");
         }
         catch (Exception e)

@@ -42,8 +42,8 @@ public class Equipes {
 	 */
 	public void creer(String nomEquipe, String matriculeCap, String nomLigue) {
 
-		Equipe e = new Equipe(nomEquipe, matriculeCap, nomLigue);
-
+		Equipe e = new Equipe(nomLigue, nomEquipe, matriculeCap);
+		
 		// Ajout d'une ligue.
 		equipesCollection.insertOne(e.toDocument());
 	}

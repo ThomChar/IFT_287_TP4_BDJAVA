@@ -44,18 +44,15 @@ public class GestionResultat {
 			if (nomEquipeA.equals(nomEquipeB))
 				throw new IFT287Exception("Les deux équipes saisies sont identiques.");
 
-			// Verifier si resultat equipeA contre EquipeB existe
 			Resultat tupleResultat = resultats.getResultat(nomEquipeA, nomEquipeB);
-			// Si pas de match retour n'est autorisé
-			Resultat tupleResultat2 = resultats.getResultat(nomEquipeB, nomEquipeA);
-
+			
 			if (tupleResultat != null)
 				throw new IFT287Exception("Resultat deja existant: " + nomEquipeA + " contre " + nomEquipeB);
-			if (tupleResultat2 != null)
-				throw new IFT287Exception("Resultat deja existant: " + nomEquipeB + " contre " + nomEquipeA);
-
+		
 			// Creation du resultat
 			resultats.ajouter(nomEquipeA, nomEquipeB, scoreEquipeA, scoreEquipeB);
+			equipes.ajouterResultat(nomEquipeA);
+			equipes.ajouterResultat(nomEquipeB);
 
 		} catch (Exception e) {
 			throw e;
@@ -72,11 +69,12 @@ public class GestionResultat {
 	 */
 	public void supprimerResultat(String nomEquipeA, String nomEquipeB) throws IFT287Exception, Exception {
 		try {
-
 			// Verifier si resultat existe
-			if (resultats.supprimer(nomEquipeA, nomEquipeB) == false)
+			if (!resultats.supprimer(nomEquipeA, nomEquipeB))
 				throw new IFT287Exception("Resultat entre " + nomEquipeA + " et " + nomEquipeB + " n'existe pas");
-
+			equipes.supprimer(nomEquipeA);
+			equipes.supprimer(nomEquipeB);
+			
 		} catch (Exception e) {
 			throw e;
 		}
@@ -99,7 +97,8 @@ public class GestionResultat {
 			// Verifier si resultat existe
 			if (!resultats.existe(nomEquipeA, nomEquipeB))
 				throw new IFT287Exception("Resultat entre " + nomEquipeA + " et " + nomEquipeB + " n'existe pas");
-
+			
+			// modifications
 			resultats.modifier(nomEquipeA, nomEquipeB, scoreEquipeA, scoreEquipeB);
 
 		} catch (Exception e) {
@@ -131,16 +130,18 @@ public class GestionResultat {
 	}
 
 	/**
-	 * Affichage de l'ensemble des résultats de la table.
-	 * 
-	 * @throws IFT287Exception,
-	 *             Exception
+	 * Affichage de l'ensemble des résultats d'une equipe.
+	 * @param nomEquipe
+	 * @throws IFT287Exception
+	 * @throws Exception
 	 */
 	public void affichageResultats() throws IFT287Exception, Exception {
 		try {
 			ArrayList<Resultat> listAllResultats = resultats.lectureResultats();
+			
+			System.out.println("\nLes résultats :");
 			for (Resultat res : listAllResultats) {
-				res.toString();
+				System.out.println(res.toString());
 			}
 
 		} catch (Exception e) {

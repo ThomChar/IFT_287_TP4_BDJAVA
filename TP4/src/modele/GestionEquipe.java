@@ -80,7 +80,7 @@ public class GestionEquipe {
 				throw new IFT287Exception("L'équipe '" + nomEquipe + "' a encore des participants actifs");
 			
 			// Suppression de l'equipe.
-			if (equipes.supprimer(nomEquipe))
+			if (!equipes.supprimer(nomEquipe))
 				throw new IFT287Exception("Equipe '" + nomEquipe + "' n'existe pas.");
 			ligues.supprimerEquipe(e.getNomLigue());
 			
@@ -132,19 +132,17 @@ public class GestionEquipe {
 				throw new IFT287Exception("L'équipe '"+nomEquipe+"' n'existe pas.");
 			
 			// affichages
-			e.toString();
-			
 			List<Participant> joueurs = participants.lectureParticipants(nomEquipe);
 			List<Resultat> scores = resultats.lectureResultats(nomEquipe);
 
-			System.out.println(e.toString());
-			System.out.println("Joueurs : ");
+			System.out.println("\n"+e.toString());
+			System.out.println("Joueurs ("+ joueurs.size() +"): ");
 			for(Participant p : joueurs) {
-				p.toString();
+				System.out.println(p.toString());
 			}
-			System.out.println("Résultats : ");
+			System.out.println("Résultats ("+ scores.size() +"): ");
 			for(Resultat r : scores) {
-				r.toString();
+				System.out.println(r.toString());
 			}
 
 		} catch (Exception e) {
@@ -164,7 +162,7 @@ public class GestionEquipe {
 			System.out.println("\nToutes les équipes ("+ eqs.size() +") : ");
 			
 			for (Equipe e : eqs) {
-				e.toString();
+				System.out.println(e.toString());
 			}
 			
 		} catch (Exception e) {
